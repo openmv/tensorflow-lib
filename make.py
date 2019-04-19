@@ -22,9 +22,9 @@ def make():
     if not os.path.exists(builddir):
         os.mkdir(builddir)
 
-    #if os.system("cd tensorflow" +
-    #" && make -f tensorflow/lite/experimental/micro/tools/make/Makefile TAGS=\"openmvcam\" generate_projects"):
-    #    sys.exit("Make Failed...")
+    if os.system("cd tensorflow" +
+    " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile TAGS=\"openmvcam\" generate_projects"):
+        sys.exit("Make Failed...")
 
     # OPENMV1 #################################################################
 
