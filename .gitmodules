@@ -1,3 +1,5 @@
 [submodule "tensorflow"]
 	path = tensorflow
+	branch = openmv
 	url = https://github.com/openmv/tensorflow.git
+
