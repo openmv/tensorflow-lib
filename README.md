@@ -1,5 +1,5 @@
 # tensorflow-lib #
-TensorFlow wrapper for Microcontrollers
+TensorFlow package for the Cortex-M4 and Cortex-M7.
 
 Instructions for building
 =========================
