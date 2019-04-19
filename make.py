@@ -36,6 +36,8 @@ def make():
     data = None
     with open(os.path.join(builddir, "OPENMV1/Makefile"), 'r') as original:
         data = original.read()
+        data = data.replace("  tensorflow/lite/experimental/micro/examples/micro_speech/main.cc", " ")
+        data = data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<")
 
     with open(os.path.join(builddir, "OPENMV1/Makefile"), 'w') as modified:
         modified.write("CC = arm-none-eabi-gcc\n")
@@ -44,7 +46,7 @@ def make():
         modified.write("CXXFLAGS += -mthumb -nostartfiles -fdata-sections -ffunction-sections\n")
         modified.write("CCFLAGS += -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
         modified.write("CXXFLAGS += -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
-        modified.write(data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<"))
+        modified.write(data)
 
     if os.system("cd " + os.path.join(builddir, "OPENMV1") + " && make -j" + str(cpus)):
         sys.exit("Make Failed...")
@@ -59,6 +61,8 @@ def make():
     data = None
     with open(os.path.join(builddir, "OPENMV2/Makefile"), 'r') as original:
         data = original.read()
+        data = data.replace("  tensorflow/lite/experimental/micro/examples/micro_speech/main.cc", " ")
+        data = data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<")
 
     with open(os.path.join(builddir, "OPENMV2/Makefile"), 'w') as modified:
         modified.write("CC = arm-none-eabi-gcc\n")
@@ -67,7 +71,7 @@ def make():
         modified.write("CXXFLAGS += -mthumb -nostartfiles -fdata-sections -ffunction-sections\n")
         modified.write("CCFLAGS += -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
         modified.write("CXXFLAGS += -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
-        modified.write(data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<"))
+        modified.write(data)
 
     if os.system("cd " + os.path.join(builddir, "OPENMV2") + " && make -j" + str(cpus)):
         sys.exit("Make Failed...")
@@ -82,6 +86,8 @@ def make():
     data = None
     with open(os.path.join(builddir, "OPENMV3/Makefile"), 'r') as original:
         data = original.read()
+        data = data.replace("  tensorflow/lite/experimental/micro/examples/micro_speech/main.cc", " ")
+        data = data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<")
 
     with open(os.path.join(builddir, "OPENMV3/Makefile"), 'w') as modified:
         modified.write("CC = arm-none-eabi-gcc\n")
@@ -90,7 +96,7 @@ def make():
         modified.write("CXXFLAGS += -mthumb -nostartfiles -fdata-sections -ffunction-sections\n")
         modified.write("CCFLAGS += -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
         modified.write("CXXFLAGS += -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
-        modified.write(data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<"))
+        modified.write(data)
 
     if os.system("cd " + os.path.join(builddir, "OPENMV3") + " && make -j" + str(cpus)):
         sys.exit("Make Failed...")
@@ -105,6 +111,8 @@ def make():
     data = None
     with open(os.path.join(builddir, "OPENMV4/Makefile"), 'r') as original:
         data = original.read()
+        data = data.replace("  tensorflow/lite/experimental/micro/examples/micro_speech/main.cc", " ")
+        data = data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<")
 
     with open(os.path.join(builddir, "OPENMV4/Makefile"), 'w') as modified:
         modified.write("CC = arm-none-eabi-gcc\n")
@@ -113,7 +121,7 @@ def make():
         modified.write("CXXFLAGS += -mthumb -nostartfiles -fdata-sections -ffunction-sections\n")
         modified.write("CCFLAGS += -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
         modified.write("CXXFLAGS += -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
-        modified.write(data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $<"))
+        modified.write(data)
 
     if os.system("cd " + os.path.join(builddir, "OPENMV4") + " && make -j" + str(cpus)):
         sys.exit("Make Failed...")
