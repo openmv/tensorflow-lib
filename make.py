@@ -65,6 +65,7 @@ def make():
     if not os.path.exists((os.path.join(bindir, "OPENMV1"))):
         os.mkdir(os.path.join(bindir, "OPENMV1"))
     shutil.copy(os.path.join(builddir, "OPENMV1/libtf.a"), os.path.join(bindir, "OPENMV1"))
+    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV1"))
 
     with open(os.path.join(bindir, "OPENMV1/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
@@ -100,6 +101,7 @@ def make():
     if not os.path.exists((os.path.join(bindir, "OPENMV2"))):
         os.mkdir(os.path.join(bindir, "OPENMV2"))
     shutil.copy(os.path.join(builddir, "OPENMV2/libtf.a"), os.path.join(bindir, "OPENMV2"))
+    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV2"))
 
     with open(os.path.join(bindir, "OPENMV2/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
@@ -135,6 +137,7 @@ def make():
     if not os.path.exists((os.path.join(bindir, "OPENMV3"))):
         os.mkdir(os.path.join(bindir, "OPENMV3"))
     shutil.copy(os.path.join(builddir, "OPENMV3/libtf.a"), os.path.join(bindir, "OPENMV3"))
+    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV3"))
 
     with open(os.path.join(bindir, "OPENMV3/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
@@ -170,6 +173,7 @@ def make():
     if not os.path.exists((os.path.join(bindir, "OPENMV4"))):
         os.mkdir(os.path.join(bindir, "OPENMV4"))
     shutil.copy(os.path.join(builddir, "OPENMV4/libtf.a"), os.path.join(bindir, "OPENMV4"))
+    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV4"))
 
     with open(os.path.join(bindir, "OPENMV4/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
