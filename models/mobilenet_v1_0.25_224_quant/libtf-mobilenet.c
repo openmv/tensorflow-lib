@@ -1,3 +1,8 @@
+/* This file is part of the OpenMV project.
+ * Copyright (c) 2013-2019 Ibrahim Abdelkader <iabdalkader@openmv.io> & Kwabena W. Agyeman <kwagyeman@openmv.io>
+ * This work is licensed under the MIT license, see the file LICENSE for details.
+ */
+
 #include "libtf-mobilenet.h"
 
 // We need to keep the data array aligned on some architectures.
