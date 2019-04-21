@@ -66,9 +66,12 @@ def make():
         os.mkdir(os.path.join(bindir, "OPENMV1"))
     shutil.copy(os.path.join(builddir, "OPENMV1/libtf.a"), os.path.join(bindir, "OPENMV1"))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV1"))
+    shutil.copy(os.path.join(__folder__, "models/mobilenet_v1_0.25_128_quant/libtf-mobilenet.c"), os.path.join(bindir, "OPENMV1"))
+    shutil.copy(os.path.join(__folder__, "libtf-mobilenet.h"), os.path.join(bindir, "OPENMV1"))
 
     with open(os.path.join(bindir, "OPENMV1/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
+        file.write("Make sure to link this library with arm-none-eabi-g++ as it was written in C++.")
 
     # OPENMV2 #################################################################
 
@@ -102,9 +105,12 @@ def make():
         os.mkdir(os.path.join(bindir, "OPENMV2"))
     shutil.copy(os.path.join(builddir, "OPENMV2/libtf.a"), os.path.join(bindir, "OPENMV2"))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV2"))
+    shutil.copy(os.path.join(__folder__, "models/mobilenet_v1_0.25_128_quant/libtf-mobilenet.c"), os.path.join(bindir, "OPENMV2"))
+    shutil.copy(os.path.join(__folder__, "libtf-mobilenet.h"), os.path.join(bindir, "OPENMV2"))
 
     with open(os.path.join(bindir, "OPENMV2/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m4 -mtune=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard\n")
+        file.write("Make sure to link this library with arm-none-eabi-g++ as it was written in C++.")
 
     # OPENMV3 #################################################################
 
@@ -138,9 +144,12 @@ def make():
         os.mkdir(os.path.join(bindir, "OPENMV3"))
     shutil.copy(os.path.join(builddir, "OPENMV3/libtf.a"), os.path.join(bindir, "OPENMV3"))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV3"))
+    shutil.copy(os.path.join(__folder__, "models/mobilenet_v1_0.25_128_quant/libtf-mobilenet.c"), os.path.join(bindir, "OPENMV3"))
+    shutil.copy(os.path.join(__folder__, "libtf-mobilenet.h"), os.path.join(bindir, "OPENMV3"))
 
     with open(os.path.join(bindir, "OPENMV3/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
+        file.write("Make sure to link this library with arm-none-eabi-g++ as it was written in C++.")
 
     # OPENMV4 #################################################################
 
@@ -174,9 +183,12 @@ def make():
         os.mkdir(os.path.join(bindir, "OPENMV4"))
     shutil.copy(os.path.join(builddir, "OPENMV4/libtf.a"), os.path.join(bindir, "OPENMV4"))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(bindir, "OPENMV4"))
+    shutil.copy(os.path.join(__folder__, "models/mobilenet_v1_0.25_128_quant/libtf-mobilenet.c"), os.path.join(bindir, "OPENMV4"))
+    shutil.copy(os.path.join(__folder__, "libtf-mobilenet.h"), os.path.join(bindir, "OPENMV4"))
 
     with open(os.path.join(bindir, "OPENMV4/README.txt"), 'w') as file:
         file.write("Compiled with -mthumb -nostartfiles -fdata-sections -ffunction-sections -mcpu=cortex-m7 -mtune=cortex-m7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard\n")
+        file.write("Make sure to link this library with arm-none-eabi-g++ as it was written in C++.")
 
 if __name__ == "__main__":
     make()
