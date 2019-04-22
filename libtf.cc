@@ -11,10 +11,98 @@
 #include "libtf.h"
 
 extern "C" {
-    int run_classification(const unsigned char *model_data,
-                           uint8_t *tensor_arena, const int tensor_arena_size,
-                           uint8_t *input_data, const int input_height, const int input_width, const int input_channels, 
-                           float *class_scores, const int class_scores_size) {
+    int libtf_get_input_data_hwc(const unsigned char *model_data,
+                                 uint8_t *tensor_arena, const int tensor_arena_size,
+                                 int *input_height, int *input_width, int *input_channels) {
+        // Set up logging.
+        tflite::MicroErrorReporter micro_error_reporter;
+        tflite::ErrorReporter* error_reporter = &micro_error_reporter;
+        
+        // Map the model into a usable data structure. This doesn't involve any
+        // copying or parsing, it's a very lightweight operation.
+        const tflite::Model* model = ::tflite::GetModel(model_data);
+        if (model->version() != TFLITE_SCHEMA_VERSION) {
+          error_reporter->Report(
+              "Model provided is schema version %d not equal to supported version %d.\n",
+              model->version(), TFLITE_SCHEMA_VERSION);
+          return 1;
+        }
+
+        // This pulls in all the operation implementations we need.
+        tflite::ops::micro::AllOpsResolver resolver;
+
+        // Create an area of memory to use for input, output, and intermediate arrays.
+        // The size of this will depend on the model you're using, and may need to be
+        // determined by experimentation.
+        tflite::SimpleTensorAllocator tensor_allocator(tensor_arena, tensor_arena_size);
+
+        // Build an interpreter to run the model with.
+        tflite::MicroInterpreter interpreter(model, resolver, &tensor_allocator, error_reporter);
+
+        // Get information about the memory area to use for the model's input.
+        TfLiteTensor* model_input = interpreter.input(0);
+
+        if ((model_input->dims->size != 4) ||
+            (model_input->dims->data[0] != 1) ||
+            (model_input->type != kTfLiteUInt8)) {
+          error_reporter->Report("Bad input tensor parameters in model!\n");
+          return 1;
+        }
+
+        *input_height = model_input->dims->data[1];
+        *input_width = model_input->dims->data[2];
+        *input_channels = model_input->dims->data[3];
+
+        return 0;
+    }
+
+    int libtf_get_classification_class_scores_size(const unsigned char *model_data,
+                                                   uint8_t *tensor_arena, const int tensor_arena_size,
+                                                   int *class_scores_size) {
+        // Set up logging.
+        tflite::MicroErrorReporter micro_error_reporter;
+        tflite::ErrorReporter* error_reporter = &micro_error_reporter;
+        
+        // Map the model into a usable data structure. This doesn't involve any
+        // copying or parsing, it's a very lightweight operation.
+        const tflite::Model* model = ::tflite::GetModel(model_data);
+        if (model->version() != TFLITE_SCHEMA_VERSION) {
+          error_reporter->Report(
+              "Model provided is schema version %d not equal to supported version %d.\n",
+              model->version(), TFLITE_SCHEMA_VERSION);
+          return 1;
+        }
+
+        // This pulls in all the operation implementations we need.
+        tflite::ops::micro::AllOpsResolver resolver;
+
+        // Create an area of memory to use for input, output, and intermediate arrays.
+        // The size of this will depend on the model you're using, and may need to be
+        // determined by experimentation.
+        tflite::SimpleTensorAllocator tensor_allocator(tensor_arena, tensor_arena_size);
+
+        // Build an interpreter to run the model with.
+        tflite::MicroInterpreter interpreter(model, resolver, &tensor_allocator, error_reporter);
+
+        // The output from the model is a vector containing the scores for each kind of prediction.
+        TfLiteTensor* output = interpreter.output(0);
+
+        if ((output->dims->size != 2) ||
+            (output->dims->data[0] != 1) ||
+            (output->type != kTfLiteUInt8)) {
+          error_reporter->Report("Bad ouput tensor parameters in model!\n");
+          return 1;
+        }
+
+        *class_scores_size = output->dims->data[1];
+
+        return 0;            
+    }
+
+    int libtf_run_classification(const unsigned char *model_data,
+                                 uint8_t *tensor_arena, const int tensor_arena_size,
+                                 uint8_t *input_data, const int input_height, const int input_width, const int input_channels, 
+                                 float *class_scores, const int class_scores_size) {
         // Set up logging.
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter* error_reporter = &micro_error_reporter;
@@ -87,7 +175,7 @@ extern "C" {
         }
 
         for (int i = 0; i < class_scores_size; ++i) {
-          class_scores[i] = sum ? (output->data.uint8[i] / sum) : 0;
+          class_scores[i] = sum ? (((float) output->data.uint8[i]) / sum) : 0;
         }
 
         return 0;
