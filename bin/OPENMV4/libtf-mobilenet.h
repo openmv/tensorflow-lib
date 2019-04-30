@@ -7,7 +7,7 @@
 #define __LIBTF_MOBILENET_H
 
 extern const unsigned char mobilenet_model_data[];
-extern const int mobilenet_model_data_data_len;
+extern const unsigned int mobilenet_model_data_len;
 
 #endif // __LIBTF_MOBILENET_H
- 
+

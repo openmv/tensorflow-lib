@@ -41459,5 +41459,5 @@ extern const unsigned char mobilenet_model_data[] = {
   0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03
 };
 
-const int mobilenet_model_data_data_len = 497264;
+const unsigned int mobilenet_model_data_len = 497264;
 

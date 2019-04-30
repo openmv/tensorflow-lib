@@ -2,7 +2,7 @@
  * Copyright (c) 2013-2019 Ibrahim Abdelkader <iabdalkader@openmv.io> & Kwabena W. Agyeman <kwagyeman@openmv.io>
  * This work is licensed under the MIT license, see the file LICENSE for details.
  */
- 
+
 #include "tensorflow/lite/experimental/micro/kernels/all_ops_resolver.h"
 #include "tensorflow/lite/experimental/micro/micro_error_reporter.h"
 #include "tensorflow/lite/experimental/micro/micro_interpreter.h"
@@ -12,12 +12,12 @@
 
 extern "C" {
     int libtf_get_input_data_hwc(const unsigned char *model_data,
-                                 uint8_t *tensor_arena, const int tensor_arena_size,
-                                 int *input_height, int *input_width, int *input_channels) {
+                                 unsigned char *tensor_arena, const unsigned int tensor_arena_size,
+                                 unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels) {
         // Set up logging.
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter* error_reporter = &micro_error_reporter;
-        
+
         // Map the model into a usable data structure. This doesn't involve any
         // copying or parsing, it's a very lightweight operation.
         const tflite::Model* model = ::tflite::GetModel(model_data);
@@ -57,12 +57,12 @@ extern "C" {
     }
 
     int libtf_get_classification_class_scores_size(const unsigned char *model_data,
-                                                   uint8_t *tensor_arena, const int tensor_arena_size,
-                                                   int *class_scores_size) {
+                                                   unsigned char *tensor_arena, const unsigned int tensor_arena_size,
+                                                   unsigned int *class_scores_size) {
         // Set up logging.
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter* error_reporter = &micro_error_reporter;
-        
+
         // Map the model into a usable data structure. This doesn't involve any
         // copying or parsing, it's a very lightweight operation.
         const tflite::Model* model = ::tflite::GetModel(model_data);
@@ -96,17 +96,17 @@ extern "C" {
 
         *class_scores_size = output->dims->data[1];
 
-        return 0;            
+        return 0;
     }
 
     int libtf_run_classification(const unsigned char *model_data,
-                                 uint8_t *tensor_arena, const int tensor_arena_size,
-                                 uint8_t *input_data, const int input_height, const int input_width, const int input_channels, 
-                                 float *class_scores, const int class_scores_size) {
+                                 unsigned char *tensor_arena, const unsigned int tensor_arena_size,
+                                 unsigned char *input_data, const unsigned int input_height, const unsigned int input_width, const unsigned int input_channels,
+                                 float *class_scores, const unsigned int class_scores_size) {
         // Set up logging.
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter* error_reporter = &micro_error_reporter;
-        
+
         // Map the model into a usable data structure. This doesn't involve any
         // copying or parsing, it's a very lightweight operation.
         const tflite::Model* model = ::tflite::GetModel(model_data);
