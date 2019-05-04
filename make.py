@@ -4,17 +4,15 @@
 
 import argparse, multiprocessing, os, shutil, sys
 
-def generate(target, __folder__, args, cpus, builddir, libdir, compile_flags):
+def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, compile_flags):
 
     print("==============================\n Building Target - " + target + "\n==============================")
 
-    project_folder = "tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/linux_x86_64/prj/softmax_test/make"
+    project_folder = "tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/linux_" + target_arch + "/prj/softmax_test/make"
 
-    if (not os.path.isdir(project_folder)) or (not args.skip_generation):
+    if (not os.path.isdir("tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/linux_x86_64/prj/softmax_test/make")) or (not args.skip_generation):
         if os.system("cd tensorflow" +
-        " && git clean -fdx" +
-        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile test" +
-        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile TAGS=\"openmvcam\" generate_projects"):
+        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " TAGS=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_projects"):
             sys.exit("Make Failed...")
 
     if os.path.exists(os.path.join(builddir, target)):
@@ -29,8 +27,8 @@ def generate(target, __folder__, args, cpus, builddir, libdir, compile_flags):
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
         data = original.read()
         data = data.replace("tensorflow/lite/experimental/micro/kernels/softmax_test.cc", "libtf.cc libm/exp.c libm/floor.c libm/frexp.c libm/round.c libm/scalbn.c")
-        data = data.replace("--O3 -DNDEBUG --std=c++11 -g -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON", "")
-        data = data.replace("-DNDEBUG -g -DTF_LITE_STATIC_MEMORY -DTF_LITE_DISABLE_X86_NEON", "")
+        data = data.replace("-O3 -DNDEBUG --std=c++11 -g -DTF_LITE_STATIC_MEMORY", "")
+        data = data.replace("-DNDEBUG -g -DTF_LITE_STATIC_MEMORY", "")
         data = data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $(OBJS)")
 
     with open(os.path.join(builddir, target, "Makefile"), 'w') as modified:
@@ -61,7 +59,7 @@ def generate(target, __folder__, args, cpus, builddir, libdir, compile_flags):
     with open(os.path.join(libdir, target, "README.txt"), 'w') as file:
         file.write("Compiled with " + compile_flags + "\n")
         file.write("Make sure to link this library with arm-none-eabi-g++ as it was written in C++.\n")
-        file.write("Finally, this library outputs debugging information via printf() (so printf() must be implemented on your system).\n")
+        file.write("Finally, this library outputs debugging information via puts() (so puts() must be implemented on your system).\n")
 
 def build_target(target, __folder__, args, cpus, builddir, libdir):
 
@@ -100,17 +98,19 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
                     "-O3 "
 
     if (target == "OPENMV1") or (target == "OPENMV2") or (target == "cortex-m4"):
-        generate(target, __folder__, args, cpus, builddir, libdir, compile_flags +
-                                                                   "-DARM_MATH_CM4 " +
-                                                                   "-mcpu=cortex-m4 " +
-                                                                   "-mtune=cortex-m4 " +
-                                                                   "-mfpu=fpv4-sp-d16")
+        generate(target, "cortex-m4", __folder__, args, cpus, builddir, libdir, compile_flags +
+                                                                                "-DARM_MATH_CM4 " +
+                                                                                "-DARM_CMSIS_NN_M4 " +
+                                                                                "-mcpu=cortex-m4 " +
+                                                                                "-mtune=cortex-m4 " +
+                                                                                "-mfpu=fpv4-sp-d16")
     elif (target == "OPENMV3") or (target == "OPENMV4") or (target == "cortex-m7"):
-        generate(target, __folder__, args, cpus, builddir, libdir, compile_flags +
-                                                                   "-DARM_MATH_CM7 " +
-                                                                   "-mcpu=cortex-m7 " +
-                                                                   "-mtune=cortex-m7 " +
-                                                                   "-mfpu=fpv5-sp-d16")
+        generate(target, "cortex-m7", __folder__, args, cpus, builddir, libdir, compile_flags +
+                                                                                "-DARM_MATH_CM7 " +
+                                                                                "-DARM_CMSIS_NN_M7 " +
+                                                                                "-mcpu=cortex-m7 " +
+                                                                                "-mtune=cortex-m7 " +
+                                                                                "-mfpu=fpv5-sp-d16")
     else:
         sys.exit("Unknown target!")
 
@@ -142,9 +142,15 @@ def make():
 
     ###########################################################################
 
+    if (not os.path.isdir("tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/linux_x86_64/prj/softmax_test/make")) or (not args.skip_generation):
+        if os.system("cd tensorflow" +
+        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " test"):
+            sys.exit("Make Failed...")
+
     build_target("OPENMV1",   __folder__, args, cpus, builddir, libdir)
     build_target("OPENMV2",   __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
+
     build_target("OPENMV3",   __folder__, args, cpus, builddir, libdir)
     build_target("OPENMV4",   __folder__, args, cpus, builddir, libdir) 
     build_target("cortex-m7", __folder__, args, cpus, builddir, libdir)
