@@ -41460,4 +41460,3 @@ const unsigned char mobilenet_model_data[] = {
 };
 
 const unsigned int mobilenet_model_data_len = 497264;
-
