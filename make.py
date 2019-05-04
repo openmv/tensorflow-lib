@@ -57,7 +57,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, comp
     shutil.copy(os.path.join(__folder__, "libtf-mobilenet.h"), os.path.join(libdir, target))
 
     with open(os.path.join(libdir, target, "README.txt"), 'w') as file:
-        file.write("Compiled with " + compile_flags + "\n")
+        file.write("Compiled with " + compile_flags + "\n\n")
         file.write("Make sure to link this library with arm-none-eabi-g++ as it was written in C++.\n")
         file.write("Finally, this library outputs debugging information via puts() (so puts() must be implemented on your system).\n")
 
