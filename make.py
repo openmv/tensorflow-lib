@@ -25,7 +25,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
                     os.path.join(builddir, target, "libm"))
 
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
-        data = original.read()
+        data = re.sub(r"tensorflow/lite/experimental/microfrontend/\S+[ \t]*", "", original.read())
         data = re.sub(r"tensorflow/lite/experimental/micro/examples/\S+[ \t]*", "", data)
         data = re.sub(r"tensorflow/lite/experimental/micro/tools/\S+[ \t]*", "", data)
         data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/frexp.c libm/round.c libm/scalbn.c \\")
