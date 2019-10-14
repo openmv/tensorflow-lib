@@ -125,7 +125,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
         generate(target, "cortex-m4", __folder__, args, cpus, builddir, libdir,
                  cortex_m4_c_compile_flags, cortex_m4_cxx_compile_flags)
 
-    elif (target == "OPENMV3") or (target == "OPENMV4") or (target == "cortex-m7"):
+    elif (target == "OPENMV3") or (target == "OPENMV4") or (target == "OPENMV4R") or (target == "cortex-m7"):
 
         cortex_m7_compile_flags = "-DARM_CMSIS_NN_M7 " \
                                   "-DARM_MATH_CM7 " \
@@ -179,8 +179,10 @@ def make():
     build_target("OPENMV1",   __folder__, args, cpus, builddir, libdir)
     build_target("OPENMV2",   __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
+
     build_target("OPENMV3",   __folder__, args, cpus, builddir, libdir)
-    build_target("OPENMV4",   __folder__, args, cpus, builddir, libdir) 
+    build_target("OPENMV4",   __folder__, args, cpus, builddir, libdir)
+    build_target("OPENMV4R",  __folder__, args, cpus, builddir, libdir) 
     build_target("cortex-m7", __folder__, args, cpus, builddir, libdir)
 
     print("==============================\n Done\n==============================")

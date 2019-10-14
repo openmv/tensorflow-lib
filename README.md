@@ -30,4 +30,4 @@ Instructions for building
 Prebuilt Files
 ==============
 
-You can find libtf pre-built in the [lib](lib) folder for the OpenMV Cam 1/2/cortex-m4 and OpenMV Cam 3/4/cortex-m7.
+You can find libtf pre-built in the [lib](lib) folder for the OpenMV Cam 1/2/cortex-m4 and OpenMV Cam 3/4/4R/cortex-m7.
