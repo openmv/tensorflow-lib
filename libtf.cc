@@ -31,13 +31,15 @@ extern "C" {
         // This pulls in all the operation implementations we need.
         tflite::ops::micro::AllOpsResolver resolver;
 
-        // Create an area of memory to use for input, output, and intermediate arrays.
-        // The size of this will depend on the model you're using, and may need to be
-        // determined by experimentation.
-        tflite::SimpleTensorAllocator tensor_allocator(tensor_arena, tensor_arena_size);
-
         // Build an interpreter to run the model with.
-        tflite::MicroInterpreter interpreter(model, resolver, &tensor_allocator, error_reporter);
+        tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
+
+        // Allocate memory from the tensor_arena for the model's tensors.
+        TfLiteStatus allocate_status = interpreter.AllocateTensors();
+        if (allocate_status != kTfLiteOk) {
+          error_reporter->Report("AllocateTensors() failed");
+          return 1;
+        }
 
         // Get information about the memory area to use for the model's input.
         TfLiteTensor* model_input = interpreter.input(0);
@@ -76,13 +78,15 @@ extern "C" {
         // This pulls in all the operation implementations we need.
         tflite::ops::micro::AllOpsResolver resolver;
 
-        // Create an area of memory to use for input, output, and intermediate arrays.
-        // The size of this will depend on the model you're using, and may need to be
-        // determined by experimentation.
-        tflite::SimpleTensorAllocator tensor_allocator(tensor_arena, tensor_arena_size);
-
         // Build an interpreter to run the model with.
-        tflite::MicroInterpreter interpreter(model, resolver, &tensor_allocator, error_reporter);
+        tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
+
+        // Allocate memory from the tensor_arena for the model's tensors.
+        TfLiteStatus allocate_status = interpreter.AllocateTensors();
+        if (allocate_status != kTfLiteOk) {
+          error_reporter->Report("AllocateTensors() failed");
+          return 1;
+        }
 
         // The output from the model is a vector containing the scores for each kind of prediction.
         TfLiteTensor* output = interpreter.output(0);
@@ -120,13 +124,15 @@ extern "C" {
         // This pulls in all the operation implementations we need.
         tflite::ops::micro::AllOpsResolver resolver;
 
-        // Create an area of memory to use for input, output, and intermediate arrays.
-        // The size of this will depend on the model you're using, and may need to be
-        // determined by experimentation.
-        tflite::SimpleTensorAllocator tensor_allocator(tensor_arena, tensor_arena_size);
-
         // Build an interpreter to run the model with.
-        tflite::MicroInterpreter interpreter(model, resolver, &tensor_allocator, error_reporter);
+        tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
+
+        // Allocate memory from the tensor_arena for the model's tensors.
+        TfLiteStatus allocate_status = interpreter.AllocateTensors();
+        if (allocate_status != kTfLiteOk) {
+          error_reporter->Report("AllocateTensors() failed");
+          return 1;
+        }
 
         // Get information about the memory area to use for the model's input.
         TfLiteTensor* model_input = interpreter.input(0);
