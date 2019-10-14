@@ -12,7 +12,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
     if (not os.path.isdir(project_folder)) or (not args.skip_generation):
         if os.system("cd tensorflow" +
-        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " TAGS=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection_make_project"):
+        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " TARGET=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection_make_project"):
             sys.exit("Make Failed...")
  
     if os.path.exists(os.path.join(builddir, target)):
