@@ -110,7 +110,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
                         "-fno-rtti " \
                         "-fpermissive "
 
-    if (target == "OPENMV1") or (target == "OPENMV2") or (target == "cortex-m4"):
+    if target == "cortex-m4":
 
         cortex_m4_compile_flags = "-DARM_CMSIS_NN_M4 " \
                                   "-DARM_MATH_CM4 " \
@@ -125,7 +125,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
         generate(target, "cortex-m4", __folder__, args, cpus, builddir, libdir,
                  cortex_m4_c_compile_flags, cortex_m4_cxx_compile_flags)
 
-    elif (target == "OPENMV3") or (target == "OPENMV4") or (target == "OPENMV4R") or (target == "cortex-m7"):
+    elif target == "cortex-m7":
 
         cortex_m7_compile_flags = "-DARM_CMSIS_NN_M7 " \
                                   "-DARM_MATH_CM7 " \
@@ -164,7 +164,7 @@ def make():
     if not os.path.exists(builddir):
         os.mkdir(builddir)
 
-    libdir = os.path.join(__folder__, "lib")
+    libdir = os.path.join(__folder__, "libtf")
 
     if not os.path.exists(libdir):
         os.mkdir(libdir)
@@ -176,13 +176,7 @@ def make():
         " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " test_person_detection_test"):
             sys.exit("Make Failed...")
 
-    build_target("OPENMV1",   __folder__, args, cpus, builddir, libdir)
-    build_target("OPENMV2",   __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
-
-    build_target("OPENMV3",   __folder__, args, cpus, builddir, libdir)
-    build_target("OPENMV4",   __folder__, args, cpus, builddir, libdir)
-    build_target("OPENMV4R",  __folder__, args, cpus, builddir, libdir) 
     build_target("cortex-m7", __folder__, args, cpus, builddir, libdir)
 
     print("==============================\n Done\n==============================")
