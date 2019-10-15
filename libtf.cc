@@ -3,14 +3,17 @@
  * This work is licensed under the MIT license, see the file LICENSE for details.
  */
 
+#include "tensorflow/lite/experimental/micro/compatibility.h"
 #include "tensorflow/lite/experimental/micro/kernels/all_ops_resolver.h"
 #include "tensorflow/lite/experimental/micro/micro_error_reporter.h"
 #include "tensorflow/lite/experimental/micro/micro_interpreter.h"
+#include "tensorflow/lite/experimental/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 #include "libtf.h"
 
 extern "C" {
+
     int libtf_get_input_data_hwc(const unsigned char *model_data,
                                  unsigned char *tensor_arena, const unsigned int tensor_arena_size,
                                  unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels) {
@@ -29,6 +32,7 @@ extern "C" {
         }
 
         // This pulls in all the operation implementations we need.
+        // NOLINTNEXTLINE(runtime-global-variables)
         tflite::ops::micro::AllOpsResolver resolver;
 
         // Build an interpreter to run the model with.
@@ -76,6 +80,7 @@ extern "C" {
         }
 
         // This pulls in all the operation implementations we need.
+        // NOLINTNEXTLINE(runtime-global-variables)
         tflite::ops::micro::AllOpsResolver resolver;
 
         // Build an interpreter to run the model with.
@@ -122,6 +127,7 @@ extern "C" {
         }
 
         // This pulls in all the operation implementations we need.
+        // NOLINTNEXTLINE(runtime-global-variables)
         tflite::ops::micro::AllOpsResolver resolver;
 
         // Build an interpreter to run the model with.

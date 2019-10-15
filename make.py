@@ -8,7 +8,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
     print("==============================\n Building Target - " + target + "\n==============================")
 
-    project_folder = "tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/linux_" + target_arch + "/prj/person_detection/make"
+    project_folder = "tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/openmvcam_" + target_arch + "/prj/person_detection/make"
 
     if (not os.path.isdir(project_folder)) or (not args.skip_generation):
         if os.system("cd tensorflow" +
@@ -28,7 +28,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
         data = re.sub(r"tensorflow/lite/experimental/microfrontend/\S+[ \t]*", "", original.read())
         data = re.sub(r"tensorflow/lite/experimental/micro/examples/\S+[ \t]*", "", data)
         data = re.sub(r"tensorflow/lite/experimental/micro/tools/\S+[ \t]*", "", data)
-        data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/frexp.c libm/round.c libm/scalbn.c \\")
+        data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c \\")
         data = data.replace("-O3 -DNDEBUG -std=c++11 -g -DTF_LITE_STATIC_MEMORY ", "")
         data = data.replace("-DNDEBUG -g -DTF_LITE_STATIC_MEMORY ", "")
         data = data.replace("$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)", "arm-none-eabi-ar rcs libtf.a $(OBJS)")
