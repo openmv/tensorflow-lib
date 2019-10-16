@@ -156,7 +156,7 @@ extern "C" {
         }
 
         // Initialize the feature data.
-        model_input->data.uint8 = input_data;
+        memcpy(model_input->data.uint8, input_data, input_height * input_width * input_channels);
 
         // Run the model on the input and make sure it succeeds.
         if (interpreter.Invoke() != kTfLiteOk) {
