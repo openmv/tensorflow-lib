@@ -96,14 +96,16 @@ extern "C" {
         // The output from the model is a vector containing the scores for each kind of prediction.
         TfLiteTensor* output = interpreter.output(0);
 
-        if ((output->dims->size != 2) ||
-            (output->dims->data[0] != 1) ||
+        if (((output->dims->size != 1) && (output->dims->size != 2) && (output->dims->size != 3) && (output->dims->size != 4)) ||
+            ((output->dims->size == 2) && (output->dims->data[0] != 1)) ||
+            ((output->dims->size == 3) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1))) ||
+            ((output->dims->size == 4) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != 1))) ||
             (output->type != kTfLiteUInt8)) {
           error_reporter->Report("Bad ouput tensor parameters in model!\n");
           return 1;
         }
 
-        *class_scores_size = output->dims->data[1];
+        *class_scores_size = output->dims->data[output->dims->size - 1];
 
         return 0;
     }
@@ -165,12 +167,14 @@ extern "C" {
         // The output from the model is a vector containing the scores for each kind of prediction.
         TfLiteTensor* output = interpreter.output(0);
 
-        if ((output->dims->size != 2) ||
-            (output->dims->data[0] != 1) ||
-            (output->dims->data[1] != class_scores_size)) {
+        if (((output->dims->size != 1) && (output->dims->size != 2) && (output->dims->size != 3) && (output->dims->size != 4)) ||
+            ((output->dims->size == 1) && (output->dims->data[0] != class_scores_size)) ||
+            ((output->dims->size == 2) && ((output->dims->data[0] != 1) || (output->dims->data[1] != class_scores_size))) ||
+            ((output->dims->size == 3) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != class_scores_size))) ||
+            ((output->dims->size == 4) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != 1) || (output->dims->data[3] != class_scores_size)))) {
           error_reporter->Report(
               "The results for recognition should contain %d elements, but there are %d in an %d-dimensional shape.\n",
-              class_scores_size, output->dims->data[1], output->dims->size);
+              class_scores_size, output->dims->data[output->dims->size - 1], output->dims->size);
           return 1;
         }
 
