@@ -3,11 +3,9 @@
  * This work is licensed under the MIT license, see the file LICENSE for details.
  */
 
-#include "tensorflow/lite/experimental/micro/compatibility.h"
 #include "tensorflow/lite/experimental/micro/kernels/all_ops_resolver.h"
 #include "tensorflow/lite/experimental/micro/micro_error_reporter.h"
 #include "tensorflow/lite/experimental/micro/micro_interpreter.h"
-#include "tensorflow/lite/experimental/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 #include "libtf.h"
@@ -16,43 +14,41 @@ extern "C" {
 
     int libtf_get_input_data_hwc(const unsigned char *model_data,
                                  unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                 unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels) {
-        // Set up logging.
+                                 unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels)
+    {
         tflite::MicroErrorReporter micro_error_reporter;
-        tflite::ErrorReporter* error_reporter = &micro_error_reporter;
+        tflite::ErrorReporter *error_reporter = &micro_error_reporter;
 
-        // Map the model into a usable data structure. This doesn't involve any
-        // copying or parsing, it's a very lightweight operation.
-        const tflite::Model* model = ::tflite::GetModel(model_data);
+        const tflite::Model *model = tflite::GetModel(model_data);
+
         if (model->version() != TFLITE_SCHEMA_VERSION) {
-          error_reporter->Report(
-              "Model provided is schema version %d not equal to supported version %d.\n",
-              model->version(), TFLITE_SCHEMA_VERSION);
-          return 1;
+            error_reporter->Report("Model provided is schema version is not equal to supported version!\n");
+            return 1;
         }
 
-        // This pulls in all the operation implementations we need.
-        // NOLINTNEXTLINE(runtime-global-variables)
         tflite::ops::micro::AllOpsResolver resolver;
-
-        // Build an interpreter to run the model with.
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
-        // Allocate memory from the tensor_arena for the model's tensors.
-        TfLiteStatus allocate_status = interpreter.AllocateTensors();
-        if (allocate_status != kTfLiteOk) {
-          error_reporter->Report("AllocateTensors() failed");
-          return 1;
+        if (interpreter.AllocateTensors() != kTfLiteOk) {
+            error_reporter->Report("AllocateTensors() failed!\n");
+            return 1;
         }
 
-        // Get information about the memory area to use for the model's input.
-        TfLiteTensor* model_input = interpreter.input(0);
+        TfLiteTensor *model_input = interpreter.input(0);
 
-        if ((model_input->dims->size != 4) ||
-            (model_input->dims->data[0] != 1) ||
-            (model_input->type != kTfLiteUInt8)) {
-          error_reporter->Report("Bad input tensor parameters in model!\n");
-          return 1;
+        if (model_input->dims->size != 4) {
+            error_reporter->Report("Input dimensions should be [n][h][w][c], e.g. 4!\n");
+            return 1;
+        }
+
+        if (model_input->dims->data[0] != 1) {
+            error_reporter->Report("Input dimension [n] should be 1!\n");
+            return 1;
+        }
+
+        if (model_input->type != kTfLiteUInt8) {
+            error_reporter->Report("Input model data type should be 8-bit quantized!\n");
+            return 1;
         }
 
         *input_height = model_input->dims->data[1];
@@ -62,131 +58,119 @@ extern "C" {
         return 0;
     }
 
-    int libtf_get_classification_class_scores_size(const unsigned char *model_data,
-                                                   unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                                   unsigned int *class_scores_size) {
-        // Set up logging.
+    int libtf_get_output_data_hwc(const unsigned char *model_data,
+                                  unsigned char *tensor_arena, const unsigned int tensor_arena_size,
+                                  unsigned int *output_height, unsigned int *output_width, unsigned int *output_channels)
+    {
         tflite::MicroErrorReporter micro_error_reporter;
-        tflite::ErrorReporter* error_reporter = &micro_error_reporter;
+        tflite::ErrorReporter *error_reporter = &micro_error_reporter;
 
-        // Map the model into a usable data structure. This doesn't involve any
-        // copying or parsing, it's a very lightweight operation.
-        const tflite::Model* model = ::tflite::GetModel(model_data);
+        const tflite::Model *model = tflite::GetModel(model_data);
+
         if (model->version() != TFLITE_SCHEMA_VERSION) {
-          error_reporter->Report(
-              "Model provided is schema version %d not equal to supported version %d.\n",
-              model->version(), TFLITE_SCHEMA_VERSION);
-          return 1;
+            error_reporter->Report("Model provided is schema version is not equal to supported version!\n");
+            return 1;
         }
 
-        // This pulls in all the operation implementations we need.
-        // NOLINTNEXTLINE(runtime-global-variables)
         tflite::ops::micro::AllOpsResolver resolver;
-
-        // Build an interpreter to run the model with.
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
-        // Allocate memory from the tensor_arena for the model's tensors.
-        TfLiteStatus allocate_status = interpreter.AllocateTensors();
-        if (allocate_status != kTfLiteOk) {
-          error_reporter->Report("AllocateTensors() failed");
-          return 1;
+        if (interpreter.AllocateTensors() != kTfLiteOk) {
+            error_reporter->Report("AllocateTensors() failed!\n");
+            return 1;
         }
 
-        // The output from the model is a vector containing the scores for each kind of prediction.
-        TfLiteTensor* output = interpreter.output(0);
+        TfLiteTensor *model_output = interpreter.output(0);
 
-        if (((output->dims->size != 1) && (output->dims->size != 2) && (output->dims->size != 3) && (output->dims->size != 4)) ||
-            ((output->dims->size == 2) && (output->dims->data[0] != 1)) ||
-            ((output->dims->size == 3) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1))) ||
-            ((output->dims->size == 4) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != 1))) ||
-            (output->type != kTfLiteUInt8)) {
-          error_reporter->Report("Bad ouput tensor parameters in model!\n");
-          return 1;
+        if (model_output->dims->size != 4) {
+            error_reporter->Report("Output dimensions should be [n][h][w][c], e.g. 4!\n");
+            return 1;
         }
 
-        *class_scores_size = output->dims->data[output->dims->size - 1];
+        if (model_output->dims->data[0] != 1) {
+            error_reporter->Report("Output dimension [n] should be 1!\n");
+            return 1;
+        }
+
+        if (model_output->type != kTfLiteUInt8) {
+            error_reporter->Report("Output model data type should be 8-bit quantized!\n");
+            return 1;
+        }
+
+        *output_height = model_output->dims->data[1];
+        *output_width = model_output->dims->data[2];
+        *output_channels = model_output->dims->data[3];
 
         return 0;
     }
 
-    int libtf_run_classification(const unsigned char *model_data,
-                                 unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                 const unsigned int input_height, const unsigned int input_width, const unsigned int input_channels,
-                                 libtf_input_data_callback_t callback, void*callback_data,
-                                 float *class_scores, const unsigned int class_scores_size) {
-        // Set up logging.
+    int libtf_invoke(const unsigned char *model_data,
+                     unsigned char *tensor_arena, const unsigned int tensor_arena_size,
+                     libtf_input_data_callback_t input_callback, void *input_callback_data,
+                     libtf_output_data_callback_t output_callback, void *output_callback_data)
+    {
         tflite::MicroErrorReporter micro_error_reporter;
-        tflite::ErrorReporter* error_reporter = &micro_error_reporter;
+        tflite::ErrorReporter *error_reporter = &micro_error_reporter;
 
-        // Map the model into a usable data structure. This doesn't involve any
-        // copying or parsing, it's a very lightweight operation.
-        const tflite::Model* model = ::tflite::GetModel(model_data);
+        const tflite::Model *model = tflite::GetModel(model_data);
+
         if (model->version() != TFLITE_SCHEMA_VERSION) {
-          error_reporter->Report(
-              "Model provided is schema version %d not equal to supported version %d.\n",
-              model->version(), TFLITE_SCHEMA_VERSION);
-          return 1;
+            error_reporter->Report("Model provided is schema version is not equal to supported version!\n");
+            return 1;
         }
 
-        // This pulls in all the operation implementations we need.
-        // NOLINTNEXTLINE(runtime-global-variables)
         tflite::ops::micro::AllOpsResolver resolver;
-
-        // Build an interpreter to run the model with.
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
-        // Allocate memory from the tensor_arena for the model's tensors.
-        TfLiteStatus allocate_status = interpreter.AllocateTensors();
-        if (allocate_status != kTfLiteOk) {
-          error_reporter->Report("AllocateTensors() failed");
-          return 1;
+        if (interpreter.AllocateTensors() != kTfLiteOk) {
+            error_reporter->Report("AllocateTensors() failed!\n");
+            return 1;
         }
 
-        // Get information about the memory area to use for the model's input.
-        TfLiteTensor* model_input = interpreter.input(0);
+        TfLiteTensor *model_input = interpreter.input(0);
 
-        if ((model_input->dims->size != 4) ||
-            (model_input->dims->data[0] != 1) ||
-            (model_input->dims->data[1] != input_height) ||
-            (model_input->dims->data[2] != input_width) ||
-            (model_input->dims->data[3] != input_channels) ||
-            (model_input->type != kTfLiteUInt8)) {
-          error_reporter->Report("Bad input tensor parameters in model!\n");
-          return 1;
+        if (model_input->dims->size != 4) {
+            error_reporter->Report("Input dimensions should be [n][h][w][c], e.g. 4!\n");
+            return 1;
         }
 
-        // Initialize the model.
-        callback(callback_data, model_input->data.uint8, input_height, input_width, input_channels);
+        if (model_input->dims->data[0] != 1) {
+            error_reporter->Report("Input dimension [n] should be 1!\n");
+            return 1;
+        }
 
-        // Run the model on the input and make sure it succeeds.
+        if (model_input->type != kTfLiteUInt8) {
+            error_reporter->Report("Input model data type should be 8-bit quantized!\n");
+            return 1;
+        }
+
+        input_callback(input_callback_data, model_input->data.uint8,
+                       model_input->dims->data[1], model_input->dims->data[2], model_input->dims->data[3]);
+
         if (interpreter.Invoke() != kTfLiteOk) {
-          error_reporter->Report("Invoke failed!\n");
-          return 1;
+            error_reporter->Report("Invoke() failed!\n");
+            return 1;
         }
 
-        // The output from the model is a vector containing the scores for each kind of prediction.
-        TfLiteTensor* output = interpreter.output(0);
+        TfLiteTensor *model_output = interpreter.output(0);
 
-        if (((output->dims->size != 1) && (output->dims->size != 2) && (output->dims->size != 3) && (output->dims->size != 4)) ||
-            ((output->dims->size == 1) && (output->dims->data[0] != class_scores_size)) ||
-            ((output->dims->size == 2) && ((output->dims->data[0] != 1) || (output->dims->data[1] != class_scores_size))) ||
-            ((output->dims->size == 3) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != class_scores_size))) ||
-            ((output->dims->size == 4) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != 1) || (output->dims->data[3] != class_scores_size))) ||
-            (output->type != kTfLiteUInt8)) {
-          error_reporter->Report("Bad ouput tensor parameters in model!\n");
-          return 1;
+        if (model_output->dims->size != 4) {
+            error_reporter->Report("Output dimensions should be [n][h][w][c], e.g. 4!\n");
+            return 1;
         }
 
-        int sum = 0;
-
-        for (int i = 0; i < class_scores_size; ++i) {
-          sum += output->data.uint8[i];
+        if (model_output->dims->data[0] != 1) {
+            error_reporter->Report("Output dimension [n] should be 1!\n");
+            return 1;
         }
 
-        for (int i = 0; i < class_scores_size; ++i) {
-          class_scores[i] = sum ? (((float) output->data.uint8[i]) / sum) : 0;
+        if (model_output->type != kTfLiteUInt8) {
+            error_reporter->Report("Output model data type should be 8-bit quantized!\n");
+            return 1;
         }
+
+        output_callback(output_callback_data, model_output->data.uint8,
+                        model_output->dims->data[1], model_output->dims->data[2], model_output->dims->data[3]);
 
         return 0;
     }

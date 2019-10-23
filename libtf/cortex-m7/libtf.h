@@ -13,7 +13,7 @@ extern "C" {
 // Call this first to get the shape of the model input.
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_get_input_data_hwc(const unsigned char *model_data, // TensorFlow Lite binary model.
+int libtf_get_input_data_hwc(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
                              unsigned char *tensor_arena, // As big as you can make it scratch buffer.
                              const unsigned int tensor_arena_size, // Size of the above scratch buffer.
                              unsigned int *input_height, // Height for the model.
@@ -23,10 +23,12 @@ int libtf_get_input_data_hwc(const unsigned char *model_data, // TensorFlow Lite
 // Call this second to get the shape of the model output.
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_get_classification_class_scores_size(const unsigned char *model_data, // TensorFlow Lite binary model.
-                                               unsigned char *tensor_arena, // As big as you can make it scratch buffer.
-                                               const unsigned int tensor_arena_size, // Size of the above scratch buffer.
-                                               unsigned int *class_scores_size); // Size of the output (in floats).
+int libtf_get_output_data_hwc(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+                              unsigned char *tensor_arena, // As big as you can make it scratch buffer.
+                              const unsigned int tensor_arena_size, // Size of the above scratch buffer.
+                              unsigned int *output_height, // Height for the model.
+                              unsigned int *output_width, // Width for the model.
+                              unsigned int *output_channels); // Channels for the model (1 for grayscale8 and 3 for rgb888).
 
 // Callback to populate the model input data byte array (laid out in [height][width][channel] order).
 typedef void (*libtf_input_data_callback_t)(void *callback_data,
@@ -35,18 +37,22 @@ typedef void (*libtf_input_data_callback_t)(void *callback_data,
                                             const unsigned int input_width,
                                             const unsigned int input_channels);
 
+// Callback to use the model output data byte array (laid out in [height][width][channel] order).
+typedef void (*libtf_output_data_callback_t)(void *callback_data,
+                                             unsigned char *model_output,
+                                             const unsigned int output_height,
+                                             const unsigned int output_width,
+                                             const unsigned int output_channels);
+
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_run_classification(const unsigned char *model_data, // TensorFlow Lite binary model.
-                             unsigned char *tensor_arena, // As big as you can make it scratch buffer.
-                             const unsigned int tensor_arena_size, // Size of the above scratch buffer.
-                             const unsigned int input_height, // Height mentioned above.
-                             const unsigned int input_width, // Width mentioned above.
-                             const unsigned int input_channels, // Channels mentioned above (1 for grayscale8 and 3 for rgb888).
-                             libtf_input_data_callback_t callback, // Callback to populate model input data byte array.
-                             void *callback_data, // User data structure passed to callback.
-                             float *class_scores, // Classification results array (always sums to 1).
-                             const unsigned int class_scores_size); // Size of the above array.
+int libtf_invoke(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+                 unsigned char *tensor_arena, // As big as you can make it scratch buffer.
+                 const unsigned int tensor_arena_size, // Size of the above scratch buffer.
+                 libtf_input_data_callback_t input_callback, // Callback to populate the model input data byte array.
+                 void *input_callback_data, // User data structure passed to input callback.
+                 libtf_output_data_callback_t output_callback, // Callback to use the model output data byte array.
+                 void *output_callback_data); // User data structure passed to output callback.
 
 #ifdef __cplusplus
 }
