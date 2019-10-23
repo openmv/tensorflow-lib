@@ -113,7 +113,7 @@ extern "C" {
     int libtf_run_classification(const unsigned char *model_data,
                                  unsigned char *tensor_arena, const unsigned int tensor_arena_size,
                                  const unsigned int input_height, const unsigned int input_width, const unsigned int input_channels,
-                                 libtf_input_data_callback callback, void*callback_data,
+                                 libtf_input_data_callback_t callback, void*callback_data,
                                  float *class_scores, const unsigned int class_scores_size) {
         // Set up logging.
         tflite::MicroErrorReporter micro_error_reporter;
