@@ -28,15 +28,23 @@ int libtf_get_classification_class_scores_size(const unsigned char *model_data, 
                                                const unsigned int tensor_arena_size, // Size of the above scratch buffer.
                                                unsigned int *class_scores_size); // Size of the output (in floats).
 
+// Callback to populate the model input data byte array (laid out in [height][width][channel] order).
+typedef void (*libtf_input_data_callback)(void *callback_data,
+                                          unsigned char *model_input,
+                                          const unsigned int input_height,
+                                          const unsigned int input_width,
+                                          const unsigned int input_channels);
+
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
 int libtf_run_classification(const unsigned char *model_data, // TensorFlow Lite binary model.
                              unsigned char *tensor_arena, // As big as you can make it scratch buffer.
                              const unsigned int tensor_arena_size, // Size of the above scratch buffer.
-                             unsigned char *input_data, // Input byte array (laid out in [height][width][channel] order).
                              const unsigned int input_height, // Height mentioned above.
                              const unsigned int input_width, // Width mentioned above.
                              const unsigned int input_channels, // Channels mentioned above (1 for grayscale8 and 3 for rgb888).
+                             libtf_input_data_callback callback, // Callback to populate model input data byte array.
+                             void *callback_data, // User data structure passed to callback.
                              float *class_scores, // Classification results array (always sums to 1).
                              const unsigned int class_scores_size); // Size of the above array.
 

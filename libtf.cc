@@ -112,7 +112,8 @@ extern "C" {
 
     int libtf_run_classification(const unsigned char *model_data,
                                  unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                 unsigned char *input_data, const unsigned int input_height, const unsigned int input_width, const unsigned int input_channels,
+                                 const unsigned int input_height, const unsigned int input_width, const unsigned int input_channels,
+                                 libtf_input_data_callback callback, void*callback_data,
                                  float *class_scores, const unsigned int class_scores_size) {
         // Set up logging.
         tflite::MicroErrorReporter micro_error_reporter;
@@ -155,8 +156,8 @@ extern "C" {
           return 1;
         }
 
-        // Initialize the feature data.
-        memcpy(model_input->data.uint8, input_data, input_height * input_width * input_channels);
+        // Initialize the model.
+        callback(callback_data, model_input->data.uint8, input_height, input_width, input_channels);
 
         // Run the model on the input and make sure it succeeds.
         if (interpreter.Invoke() != kTfLiteOk) {
@@ -171,21 +172,14 @@ extern "C" {
             ((output->dims->size == 1) && (output->dims->data[0] != class_scores_size)) ||
             ((output->dims->size == 2) && ((output->dims->data[0] != 1) || (output->dims->data[1] != class_scores_size))) ||
             ((output->dims->size == 3) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != class_scores_size))) ||
-            ((output->dims->size == 4) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != 1) || (output->dims->data[3] != class_scores_size)))) {
-          error_reporter->Report(
-              "The results for recognition should contain %d elements, but there are %d in an %d-dimensional shape.\n",
-              class_scores_size, output->dims->data[output->dims->size - 1], output->dims->size);
-          return 1;
-        }
-
-        if (output->type != kTfLiteUInt8) {
-          error_reporter->Report(
-              "The results for recognition should be uint8 elements, but are %d.\n",
-              output->type);
+            ((output->dims->size == 4) && ((output->dims->data[0] != 1) || (output->dims->data[1] != 1) || (output->dims->data[2] != 1) || (output->dims->data[3] != class_scores_size))) ||
+            (output->type != kTfLiteUInt8)) {
+          error_reporter->Report("Bad ouput tensor parameters in model!\n");
           return 1;
         }
 
         int sum = 0;
+
         for (int i = 0; i < class_scores_size; ++i) {
           sum += output->data.uint8[i];
         }
