@@ -82,8 +82,8 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if (model_output->dims->size != 4) {
-            error_reporter->Report("Output dimensions should be [n][h][w][c], e.g. 4!\n");
+        if ((model_output->dims->size != 2) && (model_output->dims->size != 4)) {
+            error_reporter->Report("Output dimensions should be [n][c], e.g. 2 or [n][h][w][c], e.g. 4!\n");
             return 1;
         }
 
@@ -97,9 +97,9 @@ extern "C" {
             return 1;
         }
 
-        *output_height = model_output->dims->data[1];
-        *output_width = model_output->dims->data[2];
-        *output_channels = model_output->dims->data[3];
+        *output_height = (model_output->dims->size == 4) ? model_output->dims->data[1] : 1;
+        *output_width = (model_output->dims->size == 4) ? model_output->dims->data[2] : 1;
+        *output_channels = (model_output->dims->size == 4) ? model_output->dims->data[3] : model_output->dims->data[1];
 
         return 0;
     }
@@ -145,7 +145,9 @@ extern "C" {
         }
 
         input_callback(input_callback_data, model_input->data.uint8,
-                       model_input->dims->data[1], model_input->dims->data[2], model_input->dims->data[3]);
+                       model_input->dims->data[1],
+                       model_input->dims->data[2],
+                       model_input->dims->data[3]);
 
         if (interpreter.Invoke() != kTfLiteOk) {
             error_reporter->Report("Invoke() failed!\n");
@@ -154,8 +156,8 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if (model_output->dims->size != 4) {
-            error_reporter->Report("Output dimensions should be [n][h][w][c], e.g. 4!\n");
+        if ((model_output->dims->size != 2) && (model_output->dims->size != 4)) {
+            error_reporter->Report("Output dimensions should be [n][c], e.g. 2 or [n][h][w][c], e.g. 4!\n");
             return 1;
         }
 
@@ -170,7 +172,9 @@ extern "C" {
         }
 
         output_callback(output_callback_data, model_output->data.uint8,
-                        model_output->dims->data[1], model_output->dims->data[2], model_output->dims->data[3]);
+                        (model_output->dims->size == 4) ? model_output->dims->data[1] : 1,
+                        (model_output->dims->size == 4) ? model_output->dims->data[2] : 1,
+                        (model_output->dims->size == 4) ? model_output->dims->data[3] : model_output->dims->data[1]);
 
         return 0;
     }
