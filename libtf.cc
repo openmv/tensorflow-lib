@@ -36,26 +36,54 @@ extern "C" {
 
         TfLiteTensor *model_input = interpreter.input(0);
 
-        if (model_input->dims->size != 4) {
-            error_reporter->Report("Input dimensions should be [n][h][w][c], e.g. 4!\n");
-            return 1;
-        }
-
-        if (model_input->dims->data[0] != 1) {
-            error_reporter->Report("Input dimension [n] should be 1!\n");
-            return 1;
-        }
-
         if (model_input->type != kTfLiteUInt8) {
             error_reporter->Report("Input model data type should be 8-bit quantized!\n");
             return 1;
         }
 
-        *input_height = model_input->dims->data[1];
-        *input_width = model_input->dims->data[2];
-        *input_channels = model_input->dims->data[3];
+        if (model_input->dims->size == 2) {
 
-        return 0;
+            *input_height = model_input->dims->data[0];
+            *input_width = model_input->dims->data[1];
+            *input_channels = 1;
+
+            return 0;
+
+        } else if (model_input->dims->size == 3) {
+
+            if ((model_input->dims->data[2] != 1) && (model_input->dims->data[2] != 3)) {
+                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                return 1;
+            }
+
+            *input_height = model_input->dims->data[0];
+            *input_width = model_input->dims->data[1];
+            *input_channels = model_input->dims->data[2];
+
+            return 0;
+
+        } else if (model_input->dims->size == 4) {
+
+            if (model_input->dims->data[0] != 1) {
+                error_reporter->Report("Input dimension [n] should be 1!\n");
+                return 1;
+            }
+
+            if ((model_input->dims->data[3] != 1) && (model_input->dims->data[3] != 3)) {
+                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                return 1;
+            }
+
+            *input_height = model_input->dims->data[1];
+            *input_width = model_input->dims->data[2];
+            *input_channels = model_input->dims->data[3];
+
+            return 0;
+
+        } else {
+            error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!\n");
+            return 1;
+        }
     }
 
     int libtf_get_output_data_hwc(const unsigned char *model_data,
@@ -82,26 +110,57 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if ((model_output->dims->size != 2) && (model_output->dims->size != 4)) {
-            error_reporter->Report("Output dimensions should be [n][c], e.g. 2 or [n][h][w][c], e.g. 4!\n");
-            return 1;
-        }
-
-        if (model_output->dims->data[0] != 1) {
-            error_reporter->Report("Output dimension [n] should be 1!\n");
-            return 1;
-        }
-
         if (model_output->type != kTfLiteUInt8) {
             error_reporter->Report("Output model data type should be 8-bit quantized!\n");
             return 1;
         }
 
-        *output_height = (model_output->dims->size == 4) ? model_output->dims->data[1] : 1;
-        *output_width = (model_output->dims->size == 4) ? model_output->dims->data[2] : 1;
-        *output_channels = (model_output->dims->size == 4) ? model_output->dims->data[3] : model_output->dims->data[1];
+        if (model_output->dims->size == 1) {
 
-        return 0;
+            *output_height = 1;
+            *output_width = 1;
+            *output_channels = model_output->dims->data[0];
+
+            return 0;
+
+        } else if (model_output->dims->size == 2) {
+
+            if (model_output->dims->data[0] != 1) {
+                error_reporter->Report("Output dimension [n] should be 1!\n");
+                return 1;
+            }
+
+            *output_height = 1;
+            *output_width = 1;
+            *output_channels = model_output->dims->data[1];
+
+            return 0;
+
+        } else if (model_output->dims->size == 3) {
+
+            *output_height = model_output->dims->data[0];
+            *output_width = model_output->dims->data[1];
+            *output_channels = model_output->dims->data[2];
+
+            return 0;
+
+        } else if (model_output->dims->size == 4) {
+
+            if (model_output->dims->data[0] != 1) {
+                error_reporter->Report("Output dimension [n] should be 1!\n");
+                return 1;
+            }
+
+            *output_height = model_output->dims->data[1];
+            *output_width = model_output->dims->data[2];
+            *output_channels = model_output->dims->data[3];
+
+            return 0;
+
+        } else {
+            error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!\n");
+            return 1;
+        }
     }
 
     int libtf_invoke(const unsigned char *model_data,
@@ -129,25 +188,54 @@ extern "C" {
 
         TfLiteTensor *model_input = interpreter.input(0);
 
-        if (model_input->dims->size != 4) {
-            error_reporter->Report("Input dimensions should be [n][h][w][c], e.g. 4!\n");
-            return 1;
-        }
-
-        if (model_input->dims->data[0] != 1) {
-            error_reporter->Report("Input dimension [n] should be 1!\n");
-            return 1;
-        }
-
         if (model_input->type != kTfLiteUInt8) {
             error_reporter->Report("Input model data type should be 8-bit quantized!\n");
             return 1;
         }
 
-        input_callback(input_callback_data, model_input->data.uint8,
-                       model_input->dims->data[1],
-                       model_input->dims->data[2],
-                       model_input->dims->data[3]);
+        if (model_input->dims->size == 2) {
+
+            input_callback(input_callback_data,
+                           model_input->data.uint8,
+                           model_input->dims->data[0],
+                           model_input->dims->data[1],
+                           1);
+
+        } else if (model_input->dims->size == 3) {
+
+            if ((model_input->dims->data[2] != 1) && (model_input->dims->data[2] != 3)) {
+                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                return 1;
+            }
+
+            input_callback(input_callback_data,
+                           model_input->data.uint8,
+                           model_input->dims->data[0],
+                           model_input->dims->data[1],
+                           model_input->dims->data[2]);
+
+        } else if (model_input->dims->size == 4) {
+
+            if (model_input->dims->data[0] != 1) {
+                error_reporter->Report("Input dimension [n] should be 1!\n");
+                return 1;
+            }
+
+            if ((model_input->dims->data[3] != 1) && (model_input->dims->data[3] != 3)) {
+                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                return 1;
+            }
+
+            input_callback(input_callback_data,
+                           model_input->data.uint8,
+                           model_input->dims->data[1],
+                           model_input->dims->data[2],
+                           model_input->dims->data[3]);
+
+        } else {
+            error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!\n");
+            return 1;
+        }
 
         if (interpreter.Invoke() != kTfLiteOk) {
             error_reporter->Report("Invoke() failed!\n");
@@ -156,25 +244,57 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if ((model_output->dims->size != 2) && (model_output->dims->size != 4)) {
-            error_reporter->Report("Output dimensions should be [n][c], e.g. 2 or [n][h][w][c], e.g. 4!\n");
-            return 1;
-        }
-
-        if (model_output->dims->data[0] != 1) {
-            error_reporter->Report("Output dimension [n] should be 1!\n");
-            return 1;
-        }
-
         if (model_output->type != kTfLiteUInt8) {
             error_reporter->Report("Output model data type should be 8-bit quantized!\n");
             return 1;
         }
 
-        output_callback(output_callback_data, model_output->data.uint8,
-                        (model_output->dims->size == 4) ? model_output->dims->data[1] : 1,
-                        (model_output->dims->size == 4) ? model_output->dims->data[2] : 1,
-                        (model_output->dims->size == 4) ? model_output->dims->data[3] : model_output->dims->data[1]);
+        if (model_output->dims->size == 1) {
+
+            output_callback(output_callback_data,
+                            model_output->data.uint8,
+                            1,
+                            1,
+                            model_output->dims->data[0]);
+
+        } else if (model_output->dims->size == 2) {
+
+            if (model_output->dims->data[0] != 1) {
+                error_reporter->Report("Output dimension [n] should be 1!\n");
+                return 1;
+            }
+
+            output_callback(output_callback_data,
+                            model_output->data.uint8,
+                            1,
+                            1,
+                            model_output->dims->data[1]);
+
+        } else if (model_output->dims->size == 3) {
+
+            output_callback(output_callback_data,
+                            model_output->data.uint8,
+                            model_output->dims->data[0],
+                            model_output->dims->data[1],
+                            model_output->dims->data[2]);
+
+        } else if (model_output->dims->size == 4) {
+
+            if (model_output->dims->data[0] != 1) {
+                error_reporter->Report("Output dimension [n] should be 1!\n");
+                return 1;
+            }
+
+            output_callback(output_callback_data,
+                            model_output->data.uint8,
+                            model_output->dims->data[1],
+                            model_output->dims->data[2],
+                            model_output->dims->data[3]);
+
+        } else {
+            error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!\n");
+            return 1;
+        }
 
         return 0;
     }
