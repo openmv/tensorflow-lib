@@ -78,6 +78,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
                     "-Wall " \
                     "-Wextra " \
                     "-Wvla " \
+                    "-Wno-format " \
                     "-Wno-missing-field-initializers " \
                     "-Wno-parentheses " \
                     "-Wno-sign-compare " \
