@@ -22,7 +22,7 @@ extern "C" {
         const tflite::Model *model = tflite::GetModel(model_data);
 
         if (model->version() != TFLITE_SCHEMA_VERSION) {
-            error_reporter->Report("Model provided is schema version is not equal to supported version!\n");
+            error_reporter->Report("Model provided is schema version is not equal to supported version!");
             return 1;
         }
 
@@ -30,14 +30,14 @@ extern "C" {
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
-            error_reporter->Report("AllocateTensors() failed!\n");
+            error_reporter->Report("AllocateTensors() failed!");
             return 1;
         }
 
         TfLiteTensor *model_input = interpreter.input(0);
 
         if (model_input->type != kTfLiteUInt8) {
-            error_reporter->Report("Input model data type should be 8-bit quantized!\n");
+            error_reporter->Report("Input model data type should be 8-bit quantized!");
             return 1;
         }
 
@@ -52,7 +52,7 @@ extern "C" {
         } else if (model_input->dims->size == 3) {
 
             if ((model_input->dims->data[2] != 1) && (model_input->dims->data[2] != 3)) {
-                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                error_reporter->Report("Input dimension [c] should be 1 or 3!");
                 return 1;
             }
 
@@ -65,12 +65,12 @@ extern "C" {
         } else if (model_input->dims->size == 4) {
 
             if (model_input->dims->data[0] != 1) {
-                error_reporter->Report("Input dimension [n] should be 1!\n");
+                error_reporter->Report("Input dimension [n] should be 1!");
                 return 1;
             }
 
             if ((model_input->dims->data[3] != 1) && (model_input->dims->data[3] != 3)) {
-                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                error_reporter->Report("Input dimension [c] should be 1 or 3!");
                 return 1;
             }
 
@@ -81,7 +81,7 @@ extern "C" {
             return 0;
 
         } else {
-            error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!\n");
+            error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!");
             return 1;
         }
     }
@@ -96,7 +96,7 @@ extern "C" {
         const tflite::Model *model = tflite::GetModel(model_data);
 
         if (model->version() != TFLITE_SCHEMA_VERSION) {
-            error_reporter->Report("Model provided is schema version is not equal to supported version!\n");
+            error_reporter->Report("Model provided is schema version is not equal to supported version!");
             return 1;
         }
 
@@ -104,14 +104,14 @@ extern "C" {
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
-            error_reporter->Report("AllocateTensors() failed!\n");
+            error_reporter->Report("AllocateTensors() failed!");
             return 1;
         }
 
         TfLiteTensor *model_output = interpreter.output(0);
 
         if (model_output->type != kTfLiteUInt8) {
-            error_reporter->Report("Output model data type should be 8-bit quantized!\n");
+            error_reporter->Report("Output model data type should be 8-bit quantized!");
             return 1;
         }
 
@@ -126,7 +126,7 @@ extern "C" {
         } else if (model_output->dims->size == 2) {
 
             if (model_output->dims->data[0] != 1) {
-                error_reporter->Report("Output dimension [n] should be 1!\n");
+                error_reporter->Report("Output dimension [n] should be 1!");
                 return 1;
             }
 
@@ -147,7 +147,7 @@ extern "C" {
         } else if (model_output->dims->size == 4) {
 
             if (model_output->dims->data[0] != 1) {
-                error_reporter->Report("Output dimension [n] should be 1!\n");
+                error_reporter->Report("Output dimension [n] should be 1!");
                 return 1;
             }
 
@@ -158,7 +158,7 @@ extern "C" {
             return 0;
 
         } else {
-            error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!\n");
+            error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!");
             return 1;
         }
     }
@@ -174,7 +174,7 @@ extern "C" {
         const tflite::Model *model = tflite::GetModel(model_data);
 
         if (model->version() != TFLITE_SCHEMA_VERSION) {
-            error_reporter->Report("Model provided is schema version is not equal to supported version!\n");
+            error_reporter->Report("Model provided is schema version is not equal to supported version!");
             return 1;
         }
 
@@ -182,14 +182,14 @@ extern "C" {
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
-            error_reporter->Report("AllocateTensors() failed!\n");
+            error_reporter->Report("AllocateTensors() failed!");
             return 1;
         }
 
         TfLiteTensor *model_input = interpreter.input(0);
 
         if (model_input->type != kTfLiteUInt8) {
-            error_reporter->Report("Input model data type should be 8-bit quantized!\n");
+            error_reporter->Report("Input model data type should be 8-bit quantized!");
             return 1;
         }
 
@@ -204,7 +204,7 @@ extern "C" {
         } else if (model_input->dims->size == 3) {
 
             if ((model_input->dims->data[2] != 1) && (model_input->dims->data[2] != 3)) {
-                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                error_reporter->Report("Input dimension [c] should be 1 or 3!");
                 return 1;
             }
 
@@ -217,12 +217,12 @@ extern "C" {
         } else if (model_input->dims->size == 4) {
 
             if (model_input->dims->data[0] != 1) {
-                error_reporter->Report("Input dimension [n] should be 1!\n");
+                error_reporter->Report("Input dimension [n] should be 1!");
                 return 1;
             }
 
             if ((model_input->dims->data[3] != 1) && (model_input->dims->data[3] != 3)) {
-                error_reporter->Report("Input dimension [c] should be 1 or 3!\n");
+                error_reporter->Report("Input dimension [c] should be 1 or 3!");
                 return 1;
             }
 
@@ -233,19 +233,19 @@ extern "C" {
                            model_input->dims->data[3]);
 
         } else {
-            error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!\n");
+            error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!");
             return 1;
         }
 
         if (interpreter.Invoke() != kTfLiteOk) {
-            error_reporter->Report("Invoke() failed!\n");
+            error_reporter->Report("Invoke() failed!");
             return 1;
         }
 
         TfLiteTensor *model_output = interpreter.output(0);
 
         if (model_output->type != kTfLiteUInt8) {
-            error_reporter->Report("Output model data type should be 8-bit quantized!\n");
+            error_reporter->Report("Output model data type should be 8-bit quantized!");
             return 1;
         }
 
@@ -260,7 +260,7 @@ extern "C" {
         } else if (model_output->dims->size == 2) {
 
             if (model_output->dims->data[0] != 1) {
-                error_reporter->Report("Output dimension [n] should be 1!\n");
+                error_reporter->Report("Output dimension [n] should be 1!");
                 return 1;
             }
 
@@ -281,7 +281,7 @@ extern "C" {
         } else if (model_output->dims->size == 4) {
 
             if (model_output->dims->data[0] != 1) {
-                error_reporter->Report("Output dimension [n] should be 1!\n");
+                error_reporter->Report("Output dimension [n] should be 1!");
                 return 1;
             }
 
@@ -292,7 +292,7 @@ extern "C" {
                             model_output->dims->data[3]);
 
         } else {
-            error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!\n");
+            error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!");
             return 1;
         }
 
