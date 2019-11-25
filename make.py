@@ -61,7 +61,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
     shutil.copy(os.path.join(builddir, target, "LICENSE"), os.path.join(libdir, target))
 
     with open(os.path.join(libdir, target, "README"), "w") as f:
-        f.write("You must link this library to your application with arm-none-eabi-g++ and have implemented puts().\n\n")
+        f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n\n")
         f.write("C Compile Flags: " + c_compile_flags + "\n\n")
         f.write("CXX Compile Flags: " + cxx_compile_flags + "\n")
 
