@@ -8,12 +8,12 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
     print("==============================\n Building Target - " + target + "\n==============================")
 
-    project_folder = "tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/openmvcam_" + target_arch + "/prj/person_detection/make"
+    project_folder = "tensorflow/tensorflow/lite/micro/tools/make/gen/openmvcam_" + target_arch + "/prj/person_detection/make"
 
     if (not os.path.isdir(project_folder)) or (not args.skip_generation):
         if os.system("cd tensorflow" +
-        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " clean" +
-        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " TARGET=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection_make_project"):
+        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " clean" +
+        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " TARGET=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection_make_project"):
             sys.exit("Make Failed...")
  
     if os.path.exists(os.path.join(builddir, target)):
@@ -26,9 +26,8 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
                     os.path.join(builddir, target, "libm"))
 
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
-        data = re.sub(r"tensorflow/lite/experimental/microfrontend/\S+[ \t]*", "", original.read())
-        data = re.sub(r"tensorflow/lite/experimental/micro/examples/\S+[ \t]*", "", data)
-        data = re.sub(r"tensorflow/lite/experimental/micro/tools/\S+[ \t]*", "", data)
+        data = re.sub(r"tensorflow/lite/microfrontend/\S+[ \t]*", "", original.read())
+        data = re.sub(r"tensorflow/lite/micro/examples/\S+[ \t]*", "", data)
         data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c \\")
         data = data.replace("-O3 -DNDEBUG -std=c++11 -g -DTF_LITE_STATIC_MEMORY ", "")
         data = data.replace("-DNDEBUG -g -DTF_LITE_STATIC_MEMORY ", "")
@@ -43,8 +42,8 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
     shutil.copy(os.path.join(__folder__, "libtf.cc"), os.path.join(builddir, target))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(builddir, target))
-    shutil.copy(os.path.join(project_folder, "tensorflow/lite/experimental/micro/tools/make/downloads/person_model_grayscale/person_detect_model_data.cc"), os.path.join(builddir, target, "libtf_person_detect_model_data.cc"))
-    shutil.copy(os.path.join(project_folder, "tensorflow/lite/experimental/micro/examples/person_detection/person_detect_model_data.h"), os.path.join(builddir, target, "libtf_person_detect_model_data.h"))
+    shutil.copy(os.path.join(project_folder, "tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/person_detect_model_data.cc"), os.path.join(builddir, target, "libtf_person_detect_model_data.cc"))
+    shutil.copy(os.path.join(project_folder, "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"), os.path.join(builddir, target, "libtf_person_detect_model_data.h"))
 
     if os.system("cd " + os.path.join(builddir, target) + " && make -j" + str(cpus) +
         " && arm-none-eabi-gcc " + cxx_compile_flags + " -o libtf_person_detect_model_data.o -c libtf_person_detect_model_data.cc" +
@@ -173,10 +172,10 @@ def make():
 
     ###########################################################################
 
-    if (not os.path.isfile("tensorflow/tensorflow/lite/experimental/micro/tools/make/gen/linux_x86_64/bin/person_detection_test")) or (not args.skip_generation):
+    if (not os.path.isfile("tensorflow/tensorflow/lite/micro/tools/make/gen/linux_x86_64/bin/person_detection_test")) or (not args.skip_generation):
         if os.system("cd tensorflow" +
-        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " clean" +
-        " && make -f tensorflow/lite/experimental/micro/tools/make/Makefile -j" + str(cpus) + " test_person_detection_test"):
+        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " clean" +
+        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " test_person_detection_test"):
             sys.exit("Make Failed...")
 
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
