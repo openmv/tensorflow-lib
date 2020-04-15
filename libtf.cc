@@ -36,7 +36,7 @@ extern "C" {
 
         TfLiteTensor *model_input = interpreter.input(0);
 
-        if (model_input->type != kTfLiteUInt8) {
+        if ((model_input->type != kTfLiteUInt8) && (model_input->type != kTfLiteInt8)) {
             error_reporter->Report("Input model data type should be 8-bit quantized!");
             return 1;
         }
@@ -110,7 +110,7 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if (model_output->type != kTfLiteUInt8) {
+        if ((model_output->type != kTfLiteUInt8) && (model_output->type != kTfLiteInt8)) {
             error_reporter->Report("Output model data type should be 8-bit quantized!");
             return 1;
         }
@@ -188,7 +188,7 @@ extern "C" {
 
         TfLiteTensor *model_input = interpreter.input(0);
 
-        if (model_input->type != kTfLiteUInt8) {
+        if ((model_input->type != kTfLiteUInt8) && (model_input->type != kTfLiteInt8)) {
             error_reporter->Report("Input model data type should be 8-bit quantized!");
             return 1;
         }
@@ -244,7 +244,7 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if (model_output->type != kTfLiteUInt8) {
+        if ((model_output->type != kTfLiteUInt8) && (model_output->type != kTfLiteInt8)) {
             error_reporter->Report("Output model data type should be 8-bit quantized!");
             return 1;
         }
