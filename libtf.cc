@@ -14,7 +14,7 @@ extern "C" {
 
     int libtf_get_input_data_hwc(const unsigned char *model_data,
                                  unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                 unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels)
+                                 unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels, bool *signed_or_unsigned)
     {
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -46,6 +46,7 @@ extern "C" {
             *input_height = model_input->dims->data[0];
             *input_width = model_input->dims->data[1];
             *input_channels = 1;
+            *signed_or_unsigned = model_input->type == kTfLiteInt8;
 
             return 0;
 
@@ -59,6 +60,7 @@ extern "C" {
             *input_height = model_input->dims->data[0];
             *input_width = model_input->dims->data[1];
             *input_channels = model_input->dims->data[2];
+            *signed_or_unsigned = model_input->type == kTfLiteInt8;
 
             return 0;
 
@@ -77,6 +79,7 @@ extern "C" {
             *input_height = model_input->dims->data[1];
             *input_width = model_input->dims->data[2];
             *input_channels = model_input->dims->data[3];
+            *signed_or_unsigned = model_input->type == kTfLiteInt8;
 
             return 0;
 
@@ -88,7 +91,7 @@ extern "C" {
 
     int libtf_get_output_data_hwc(const unsigned char *model_data,
                                   unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                  unsigned int *output_height, unsigned int *output_width, unsigned int *output_channels)
+                                  unsigned int *output_height, unsigned int *output_width, unsigned int *output_channels, bool *signed_or_unsigned)
     {
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -120,6 +123,7 @@ extern "C" {
             *output_height = 1;
             *output_width = 1;
             *output_channels = model_output->dims->data[0];
+            *signed_or_unsigned = model_output->type == kTfLiteInt8;
 
             return 0;
 
@@ -133,6 +137,7 @@ extern "C" {
             *output_height = 1;
             *output_width = 1;
             *output_channels = model_output->dims->data[1];
+            *signed_or_unsigned = model_output->type == kTfLiteInt8;
 
             return 0;
 
@@ -141,6 +146,7 @@ extern "C" {
             *output_height = model_output->dims->data[0];
             *output_width = model_output->dims->data[1];
             *output_channels = model_output->dims->data[2];
+            *signed_or_unsigned = model_output->type == kTfLiteInt8;
 
             return 0;
 
@@ -154,6 +160,7 @@ extern "C" {
             *output_height = model_output->dims->data[1];
             *output_width = model_output->dims->data[2];
             *output_channels = model_output->dims->data[3];
+            *signed_or_unsigned = model_output->type == kTfLiteInt8;
 
             return 0;
 
@@ -196,10 +203,11 @@ extern "C" {
         if (model_input->dims->size == 2) {
 
             input_callback(input_callback_data,
-                           model_input->data.uint8,
+                           model_input->data.data,
                            model_input->dims->data[0],
                            model_input->dims->data[1],
-                           1);
+                           1,
+                           model_input->type == kTfLiteInt8);
 
         } else if (model_input->dims->size == 3) {
 
@@ -209,10 +217,11 @@ extern "C" {
             }
 
             input_callback(input_callback_data,
-                           model_input->data.uint8,
+                           model_input->data.data,
                            model_input->dims->data[0],
                            model_input->dims->data[1],
-                           model_input->dims->data[2]);
+                           model_input->dims->data[2],
+                           model_input->type == kTfLiteInt8);
 
         } else if (model_input->dims->size == 4) {
 
@@ -227,10 +236,11 @@ extern "C" {
             }
 
             input_callback(input_callback_data,
-                           model_input->data.uint8,
+                           model_input->data.data,
                            model_input->dims->data[1],
                            model_input->dims->data[2],
-                           model_input->dims->data[3]);
+                           model_input->dims->data[3],
+                           model_input->type == kTfLiteInt8);
 
         } else {
             error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!");
@@ -252,10 +262,11 @@ extern "C" {
         if (model_output->dims->size == 1) {
 
             output_callback(output_callback_data,
-                            model_output->data.uint8,
+                            model_output->data.data,
                             1,
                             1,
-                            model_output->dims->data[0]);
+                            model_output->dims->data[0],
+                            model_output->type == kTfLiteInt8);
 
         } else if (model_output->dims->size == 2) {
 
@@ -265,18 +276,20 @@ extern "C" {
             }
 
             output_callback(output_callback_data,
-                            model_output->data.uint8,
+                            model_output->data.data,
                             1,
                             1,
-                            model_output->dims->data[1]);
+                            model_output->dims->data[1],
+                            model_output->type == kTfLiteInt8);
 
         } else if (model_output->dims->size == 3) {
 
             output_callback(output_callback_data,
-                            model_output->data.uint8,
+                            model_output->data.data,
                             model_output->dims->data[0],
                             model_output->dims->data[1],
-                            model_output->dims->data[2]);
+                            model_output->dims->data[2],
+                            model_output->type == kTfLiteInt8);
 
         } else if (model_output->dims->size == 4) {
 
@@ -286,10 +299,11 @@ extern "C" {
             }
 
             output_callback(output_callback_data,
-                            model_output->data.uint8,
+                            model_output->data.data,
                             model_output->dims->data[1],
                             model_output->dims->data[2],
-                            model_output->dims->data[3]);
+                            model_output->dims->data[3],
+                            model_output->type == kTfLiteInt8);
 
         } else {
             error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!");
