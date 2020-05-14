@@ -12,9 +12,29 @@
 
 extern "C" {
 
+    static int libtf_align_tensor_arena(unsigned char **tensor_arena, unsigned int *tensor_arena_size)
+    {
+        unsigned int alignment = ((unsigned int) (*tensor_arena)) % 16;
+
+        if (alignment) {
+
+            unsigned int fix = 16 - alignment;
+
+            if ((*tensor_arena_size) < fix) {
+                return 1;
+            }
+
+            (*tensor_arena) += fix;
+            (*tensor_arena_size) -= fix;
+        }
+
+        return 0;
+    }
+
     int libtf_get_input_data_hwc(const unsigned char *model_data,
-                                 unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                 unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels, bool *signed_or_unsigned)
+                                 unsigned char *tensor_arena, unsigned int tensor_arena_size,
+                                 unsigned int *input_height, unsigned int *input_width, unsigned int *input_channels,
+                                 bool *signed_or_unsigned, bool *is_float)
     {
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -23,6 +43,11 @@ extern "C" {
 
         if (model->version() != TFLITE_SCHEMA_VERSION) {
             error_reporter->Report("Model provided is schema version is not equal to supported version!");
+            return 1;
+        }
+
+        if (libtf_align_tensor_arena(&tensor_arena, &tensor_arena_size)) {
+            error_reporter->Report("Align failed!");
             return 1;
         }
 
@@ -36,7 +61,7 @@ extern "C" {
 
         TfLiteTensor *model_input = interpreter.input(0);
 
-        if ((model_input->type != kTfLiteUInt8) && (model_input->type != kTfLiteInt8)) {
+        if ((model_input->type != kTfLiteUInt8) && (model_input->type != kTfLiteInt8) && (model_input->type != kTfLiteFloat32)) {
             error_reporter->Report("Input model data type should be 8-bit quantized!");
             return 1;
         }
@@ -46,7 +71,8 @@ extern "C" {
             *input_height = model_input->dims->data[0];
             *input_width = model_input->dims->data[1];
             *input_channels = 1;
-            *signed_or_unsigned = model_input->type == kTfLiteInt8;
+            *signed_or_unsigned = (model_input->type == kTfLiteInt8) || (model_input->type == kTfLiteFloat32);
+            *is_float = model_input->type == kTfLiteFloat32;
 
             return 0;
 
@@ -60,7 +86,8 @@ extern "C" {
             *input_height = model_input->dims->data[0];
             *input_width = model_input->dims->data[1];
             *input_channels = model_input->dims->data[2];
-            *signed_or_unsigned = model_input->type == kTfLiteInt8;
+            *signed_or_unsigned = (model_input->type == kTfLiteInt8) || (model_input->type == kTfLiteFloat32);
+            *is_float = model_input->type == kTfLiteFloat32;
 
             return 0;
 
@@ -79,7 +106,8 @@ extern "C" {
             *input_height = model_input->dims->data[1];
             *input_width = model_input->dims->data[2];
             *input_channels = model_input->dims->data[3];
-            *signed_or_unsigned = model_input->type == kTfLiteInt8;
+            *signed_or_unsigned = (model_input->type == kTfLiteInt8) || (model_input->type == kTfLiteFloat32);
+            *is_float = model_input->type == kTfLiteFloat32;
 
             return 0;
 
@@ -90,8 +118,9 @@ extern "C" {
     }
 
     int libtf_get_output_data_hwc(const unsigned char *model_data,
-                                  unsigned char *tensor_arena, const unsigned int tensor_arena_size,
-                                  unsigned int *output_height, unsigned int *output_width, unsigned int *output_channels, bool *signed_or_unsigned)
+                                  unsigned char *tensor_arena, unsigned int tensor_arena_size,
+                                  unsigned int *output_height, unsigned int *output_width, unsigned int *output_channels,
+                                  bool *signed_or_unsigned, bool *is_float)
     {
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -100,6 +129,11 @@ extern "C" {
 
         if (model->version() != TFLITE_SCHEMA_VERSION) {
             error_reporter->Report("Model provided is schema version is not equal to supported version!");
+            return 1;
+        }
+
+        if (libtf_align_tensor_arena(&tensor_arena, &tensor_arena_size)) {
+            error_reporter->Report("Align failed!");
             return 1;
         }
 
@@ -113,7 +147,7 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if ((model_output->type != kTfLiteUInt8) && (model_output->type != kTfLiteInt8)) {
+        if ((model_output->type != kTfLiteUInt8) && (model_output->type != kTfLiteInt8) && (model_output->type != kTfLiteFloat32)) {
             error_reporter->Report("Output model data type should be 8-bit quantized!");
             return 1;
         }
@@ -123,7 +157,8 @@ extern "C" {
             *output_height = 1;
             *output_width = 1;
             *output_channels = model_output->dims->data[0];
-            *signed_or_unsigned = model_output->type == kTfLiteInt8;
+            *signed_or_unsigned = (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32);
+            *is_float = model_output->type == kTfLiteFloat32;
 
             return 0;
 
@@ -137,7 +172,8 @@ extern "C" {
             *output_height = 1;
             *output_width = 1;
             *output_channels = model_output->dims->data[1];
-            *signed_or_unsigned = model_output->type == kTfLiteInt8;
+            *signed_or_unsigned = (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32);
+            *is_float = model_output->type == kTfLiteFloat32;
 
             return 0;
 
@@ -146,7 +182,8 @@ extern "C" {
             *output_height = model_output->dims->data[0];
             *output_width = model_output->dims->data[1];
             *output_channels = model_output->dims->data[2];
-            *signed_or_unsigned = model_output->type == kTfLiteInt8;
+            *signed_or_unsigned = (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32);
+            *is_float = model_output->type == kTfLiteFloat32;
 
             return 0;
 
@@ -160,7 +197,8 @@ extern "C" {
             *output_height = model_output->dims->data[1];
             *output_width = model_output->dims->data[2];
             *output_channels = model_output->dims->data[3];
-            *signed_or_unsigned = model_output->type == kTfLiteInt8;
+            *signed_or_unsigned = (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32);
+            *is_float = model_output->type == kTfLiteFloat32;
 
             return 0;
 
@@ -171,7 +209,7 @@ extern "C" {
     }
 
     int libtf_invoke(const unsigned char *model_data,
-                     unsigned char *tensor_arena, const unsigned int tensor_arena_size,
+                     unsigned char *tensor_arena, unsigned int tensor_arena_size,
                      libtf_input_data_callback_t input_callback, void *input_callback_data,
                      libtf_output_data_callback_t output_callback, void *output_callback_data)
     {
@@ -185,6 +223,11 @@ extern "C" {
             return 1;
         }
 
+        if (libtf_align_tensor_arena(&tensor_arena, &tensor_arena_size)) {
+            error_reporter->Report("Align failed!");
+            return 1;
+        }
+
         tflite::ops::micro::AllOpsResolver resolver;
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
@@ -195,7 +238,7 @@ extern "C" {
 
         TfLiteTensor *model_input = interpreter.input(0);
 
-        if ((model_input->type != kTfLiteUInt8) && (model_input->type != kTfLiteInt8)) {
+        if ((model_input->type != kTfLiteUInt8) && (model_input->type != kTfLiteInt8) && (model_input->type != kTfLiteFloat32)) {
             error_reporter->Report("Input model data type should be 8-bit quantized!");
             return 1;
         }
@@ -207,7 +250,8 @@ extern "C" {
                            model_input->dims->data[0],
                            model_input->dims->data[1],
                            1,
-                           model_input->type == kTfLiteInt8);
+                           (model_input->type == kTfLiteInt8) || (model_input->type == kTfLiteFloat32),
+                           model_input->type == kTfLiteFloat32);
 
         } else if (model_input->dims->size == 3) {
 
@@ -221,7 +265,8 @@ extern "C" {
                            model_input->dims->data[0],
                            model_input->dims->data[1],
                            model_input->dims->data[2],
-                           model_input->type == kTfLiteInt8);
+                           (model_input->type == kTfLiteInt8) || (model_input->type == kTfLiteFloat32),
+                           model_input->type == kTfLiteFloat32);
 
         } else if (model_input->dims->size == 4) {
 
@@ -240,7 +285,8 @@ extern "C" {
                            model_input->dims->data[1],
                            model_input->dims->data[2],
                            model_input->dims->data[3],
-                           model_input->type == kTfLiteInt8);
+                           (model_input->type == kTfLiteInt8) || (model_input->type == kTfLiteFloat32),
+                           model_input->type == kTfLiteFloat32);
 
         } else {
             error_reporter->Report("Input dimensions should be [h][w](c=1), [h][w][c==1||c==3], or [n==1][h][w][c==1||c==3]!");
@@ -254,7 +300,7 @@ extern "C" {
 
         TfLiteTensor *model_output = interpreter.output(0);
 
-        if ((model_output->type != kTfLiteUInt8) && (model_output->type != kTfLiteInt8)) {
+        if ((model_output->type != kTfLiteUInt8) && (model_output->type != kTfLiteInt8) && (model_output->type != kTfLiteFloat32)) {
             error_reporter->Report("Output model data type should be 8-bit quantized!");
             return 1;
         }
@@ -266,7 +312,8 @@ extern "C" {
                             1,
                             1,
                             model_output->dims->data[0],
-                            model_output->type == kTfLiteInt8);
+                            (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32),
+                            model_output->type == kTfLiteFloat32);
 
         } else if (model_output->dims->size == 2) {
 
@@ -280,7 +327,8 @@ extern "C" {
                             1,
                             1,
                             model_output->dims->data[1],
-                            model_output->type == kTfLiteInt8);
+                            (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32),
+                            model_output->type == kTfLiteFloat32);
 
         } else if (model_output->dims->size == 3) {
 
@@ -289,7 +337,8 @@ extern "C" {
                             model_output->dims->data[0],
                             model_output->dims->data[1],
                             model_output->dims->data[2],
-                            model_output->type == kTfLiteInt8);
+                            (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32),
+                            model_output->type == kTfLiteFloat32);
 
         } else if (model_output->dims->size == 4) {
 
@@ -303,7 +352,8 @@ extern "C" {
                             model_output->dims->data[1],
                             model_output->dims->data[2],
                             model_output->dims->data[3],
-                            model_output->type == kTfLiteInt8);
+                            (model_output->type == kTfLiteInt8) || (model_output->type == kTfLiteFloat32),
+                            model_output->type == kTfLiteFloat32);
 
         } else {
             error_reporter->Report("Output dimensions should be [c], [n==1][c], [h][w][c], or [n==1][h][w][c]!");
