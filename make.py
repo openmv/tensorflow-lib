@@ -25,17 +25,17 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
                     os.path.join(builddir, target, "libm"))
 
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
-        data = original.read()
-        data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c \\")
+        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/\S*", "", original.read())
+        data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c $(call recursive_find,tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Source,*.c) \\")
         data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -O3 ", "")
         data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -O3 ", "")
-        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/\S*", "", data)
 
     cmsis_nn_includes = " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
                         " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Include" \
                         " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/DSP/Include"
 
     with open(os.path.join(builddir, target, "Makefile"), 'w') as modified:
+        modified.write("recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))\n")
         modified.write("CCFLAGS = " + c_compile_flags + cmsis_nn_includes + "\n")
         modified.write("CXXFLAGS = " + cxx_compile_flags + cmsis_nn_includes + "\n")
         modified.write(data)
