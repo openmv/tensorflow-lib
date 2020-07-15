@@ -3,7 +3,7 @@
  * This work is licensed under the MIT license, see the file LICENSE for details.
  */
 
-#include "tensorflow/lite/micro/kernels/all_ops_resolver.h"
+#include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/schema/schema_generated.h"
@@ -51,7 +51,7 @@ extern "C" {
             return 1;
         }
 
-        tflite::ops::micro::AllOpsResolver resolver;
+        tflite::AllOpsResolver resolver;
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
@@ -137,7 +137,7 @@ extern "C" {
             return 1;
         }
 
-        tflite::ops::micro::AllOpsResolver resolver;
+        tflite::AllOpsResolver resolver;
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
@@ -228,7 +228,7 @@ extern "C" {
             return 1;
         }
 
-        tflite::ops::micro::AllOpsResolver resolver;
+        tflite::AllOpsResolver resolver;
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
