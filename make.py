@@ -27,10 +27,13 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
         data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/\S*", "", original.read())
         data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c $(call recursive_find,tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Source,*.c) \\")
-        data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -O3 ", "")
-        data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -O3 ", "")
+        data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
+        data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
+        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/testing/%, $(filter-out tensorflow/lite/micro/benchmarks/%, $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))))")
 
-    cmsis_nn_includes = " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
+    cmsis_nn_includes = " -I./tensorflow/lite/micro/tools/make/downloads" \
+                        " -I./../../tensorflow/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
+                        " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
                         " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Include" \
                         " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/DSP/Include"
 
