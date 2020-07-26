@@ -12,7 +12,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
     if (not os.path.isdir(project_folder)) or (not args.skip_generation):
         if os.system("cd tensorflow" +
-        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " TARGET=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection_make_project"):
+        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " TAGS=\"cmsis-nn\" TARGET=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection_make_project"):
             sys.exit("Make Failed...")
 
     if os.path.exists(os.path.join(builddir, target)):
@@ -27,8 +27,8 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
         data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/\S*", "", original.read())
         data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c $(call recursive_find,tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Source,*.c) \\")
-        data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
-        data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
+        data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -Werror -Wsign-compare -Wdouble-promotion -Wshadow -Wunused-variable -Wmissing-field-initializers -Wunused-function -DNDEBUG -O3 ", "")
+        data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -Werror -Wsign-compare -Wdouble-promotion -Wshadow -Wunused-variable -Wmissing-field-initializers -Wunused-function -DNDEBUG -O3 ", "")
         data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/testing/%, $(filter-out tensorflow/lite/micro/benchmarks/%, $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))))")
 
     cmsis_nn_includes = " -I./tensorflow/lite/micro/tools/make/downloads" \
@@ -71,7 +71,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
 
     compile_flags = "-D __FPU_PRESENT=1 " \
                     "-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK " \
-                    "-DNDEBUG " \
+                    "-g " \
                     "-DTF_LITE_DISABLE_X86_NEON " \
                     "-DTF_LITE_MCU_DEBUG_LOG " \
                     "-DTF_LITE_STATIC_MEMORY " \
