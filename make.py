@@ -36,20 +36,20 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
                     os.path.join(builddir, target, "libm"))
 
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
-        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/\S*", "", original.read())
-        data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c $(call recursive_find,tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Source,*.c) \\")
-        data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -Werror -Wsign-compare -Wdouble-promotion -Wshadow -Wunused-variable -Wmissing-field-initializers -Wunused-function -DNDEBUG -O3 ", "")
-        data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -Werror -Wsign-compare -Wdouble-promotion -Wshadow -Wunused-variable -Wmissing-field-initializers -Wunused-function -DNDEBUG -O3 ", "")
-        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/testing/%, $(filter-out tensorflow/lite/micro/benchmarks/%, $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))))")
+        data = original.read().replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c \\")
+        data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
+        data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
+        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
+        data = re.sub(r"tensorflow/lite/micro/benchmarks/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/testing/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/examples/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/person_model_int8/\S*", "", data)
 
     cmsis_nn_includes = " -I./tensorflow/lite/micro/tools/make/downloads" \
-                        " -I./../../tensorflow/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
-                        " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
-                        " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Include" \
-                        " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/DSP/Include"
+                        " -I./../../tensorflow/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include"
 
     with open(os.path.join(builddir, target, "Makefile"), 'w') as modified:
-        modified.write("recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))\n")
         modified.write("CCFLAGS = " + c_compile_flags + cmsis_nn_includes + "\n")
         modified.write("CXXFLAGS = " + cxx_compile_flags + cmsis_nn_includes + "\n")
         modified.write(data)
@@ -81,9 +81,9 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 def build_target(target, __folder__, args, cpus, builddir, libdir):
 
     compile_flags = "-D __FPU_PRESENT=1 " \
-                    "-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK " \
+                    "-D __FPU_USED=1 " \
+                    "-D __ARM_FEATURE_DSP=1 " \
                     "-DNDEBUG " \
-                    "-DTF_LITE_DISABLE_X86_NEON " \
                     "-DTF_LITE_MCU_DEBUG_LOG " \
                     "-DTF_LITE_STATIC_MEMORY " \
                     "-MMD " \
