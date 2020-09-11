@@ -80,9 +80,9 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
 def build_target(target, __folder__, args, cpus, builddir, libdir):
 
-    compile_flags = "-D __FPU_PRESENT=1 " \
-                    "-D __FPU_USED=1 " \
-                    "-D __ARM_FEATURE_DSP=1 " \
+    compile_flags = "-D__FPU_PRESENT=1 " \
+                    "-D__FPU_USED=1 " \
+                    "-D__ARM_FEATURE_DSP=1 " \
                     "-DNDEBUG " \
                     "-DTF_LITE_MCU_DEBUG_LOG " \
                     "-DTF_LITE_STATIC_MEMORY " \
