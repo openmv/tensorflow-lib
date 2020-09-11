@@ -86,6 +86,8 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
                     "-DNDEBUG " \
                     "-DTF_LITE_MCU_DEBUG_LOG " \
                     "-DTF_LITE_STATIC_MEMORY " \
+                    "-DARM_MATH_DSP " \
+                    "-DARM_NN_TRUNCATE " \
                     "-MMD " \
                     "-O3 " \
                     "-Wall " \
