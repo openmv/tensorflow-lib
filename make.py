@@ -4,7 +4,7 @@
 
 import argparse, multiprocessing, os, re, shutil, sys
 
-INT8 = True
+INT8 = False
 
 UINT8_MODEL_C_PATH = "tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/person_detect_model_data.cc"
 UINT8_MODEL_H_PATH = "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
@@ -87,6 +87,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
                     "-MMD " \
                     "-O3 " \
                     "-Wall " \
+                    "-Werror " \
                     "-Warray-bounds " \
                     "-Wextra " \
                     "-Wvla " \
@@ -101,6 +102,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
                     "-fmessage-length=0 " \
                     "-fomit-frame-pointer " \
                     "-funsigned-char " \
+                    "-fshort-enums " \
                     "-fno-delete-null-pointer-checks " \
                     "-fno-exceptions " \
                     "-fno-unwind-tables " \
