@@ -4,15 +4,26 @@
 
 import argparse, multiprocessing, os, re, shutil, sys
 
+INT8 = False
+
+UINT8_MODEL_C_PATH = "tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/person_detect_model_data.cc"
+UINT8_MODEL_H_PATH = "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
+
+INT8_MODEL_C_PATH = "tensorflow/lite/micro/tools/make/downloads/person_model_int8/person_detect_model_data.cc"
+INT8_MODEL_H_PATH = "tensorflow/lite/micro/examples/person_detection_experimental/person_detect_model_data.h"
+
+MODEL_C_PATH = INT8_MODEL_C_PATH if INT8 else UINT8_MODEL_C_PATH
+MODEL_H_PATH = INT8_MODEL_H_PATH if INT8 else UINT8_MODEL_H_PATH
+
 def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_compile_flags, cxx_compile_flags):
 
     print("==============================\n Building Target - " + target + "\n==============================")
 
-    project_folder = "tensorflow/tensorflow/lite/micro/tools/make/gen/openmvcam_" + target_arch + "/prj/person_detection/make"
+    project_folder = "tensorflow/tensorflow/lite/micro/tools/make/gen/openmvcam_" + target_arch + "/prj/person_detection" + ("_int8" if INT8 else "") + "/make"
 
     if (not os.path.isdir(project_folder)) or (not args.skip_generation):
         if os.system("cd tensorflow" +
-        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " TARGET=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection_make_project"):
+        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " TAGS=\"cmsis-nn\" TARGET=\"openmvcam\" TARGET_ARCH=\"" + target_arch + "\" generate_person_detection" + ("_int8" if INT8 else "") + "_make_project"):
             sys.exit("Make Failed...")
 
     if os.path.exists(os.path.join(builddir, target)):
@@ -25,28 +36,28 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
                     os.path.join(builddir, target, "libm"))
 
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
-        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/\S*", "", original.read())
-        data = data.replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c $(call recursive_find,tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Source,*.c) \\")
+        data = original.read().replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c \\")
         data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
         data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
-        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/testing/%, $(filter-out tensorflow/lite/micro/benchmarks/%, $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))))")
+        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
+        data = re.sub(r"tensorflow/lite/micro/benchmarks/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/testing/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/examples/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/\S*", "", data)
+        data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/person_model_int8/\S*", "", data)
 
     cmsis_nn_includes = " -I./tensorflow/lite/micro/tools/make/downloads" \
-                        " -I./../../tensorflow/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
-                        " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include" \
-                        " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/NN/Include" \
-                        " -I./tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/DSP/Include"
+                        " -I./../../tensorflow/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include"
 
     with open(os.path.join(builddir, target, "Makefile"), 'w') as modified:
-        modified.write("recursive_find = $(wildcard $(1)$(2)) $(foreach dir,$(wildcard $(1)*),$(call recursive_find,$(dir)/,$(2)))\n")
         modified.write("CCFLAGS = " + c_compile_flags + cmsis_nn_includes + "\n")
         modified.write("CXXFLAGS = " + cxx_compile_flags + cmsis_nn_includes + "\n")
         modified.write(data)
 
     shutil.copy(os.path.join(__folder__, "libtf.cc"), os.path.join(builddir, target))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(builddir, target))
-    shutil.copy(os.path.join(project_folder, "tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/person_detect_model_data.cc"), os.path.join(builddir, target, "libtf_person_detect_model_data.cc"))
-    shutil.copy(os.path.join(project_folder, "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"), os.path.join(builddir, target, "libtf_person_detect_model_data.h"))
+    shutil.copy(os.path.join(project_folder, MODEL_C_PATH), os.path.join(builddir, target, "libtf_person_detect_model_data.cc"))
+    shutil.copy(os.path.join(project_folder, MODEL_H_PATH), os.path.join(builddir, target, "libtf_person_detect_model_data.h"))
 
     if os.system("cd " + os.path.join(builddir, target) + " && make -j " + str(cpus) + " lib TARGET_TOOLCHAIN_PREFIX=arm-none-eabi-"
         " && arm-none-eabi-gcc " + cxx_compile_flags + " -o libtf_person_detect_model_data.o -c libtf_person_detect_model_data.cc" +
@@ -69,57 +80,50 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
 def build_target(target, __folder__, args, cpus, builddir, libdir):
 
-    compile_flags = "-D __FPU_PRESENT=1 " \
-                    "-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK " \
+    compile_flags = "-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK " \
                     "-DNDEBUG " \
-                    "-DTF_LITE_DISABLE_X86_NEON " \
                     "-DTF_LITE_MCU_DEBUG_LOG " \
                     "-DTF_LITE_STATIC_MEMORY " \
                     "-MMD " \
                     "-O3 " \
                     "-Wall " \
+                    "-Werror " \
+                    "-Warray-bounds " \
                     "-Wextra " \
                     "-Wvla " \
-                    "-Wno-format " \
                     "-Wno-missing-field-initializers " \
-                    "-Wno-parentheses " \
-                    "-Wno-return-type " \
-                    "-Wno-sign-compare " \
                     "-Wno-strict-aliasing " \
                     "-Wno-type-limits " \
                     "-Wno-unused-but-set-variable " \
                     "-Wno-unused-parameter " \
                     "-Wno-unused-variable " \
-                    "-Wno-write-strings " \
                     "-fdata-sections " \
                     "-ffunction-sections " \
                     "-fmessage-length=0 " \
                     "-fomit-frame-pointer " \
                     "-funsigned-char " \
-                    "-fno-builtin " \
+                    "-fshort-enums " \
                     "-fno-delete-null-pointer-checks " \
                     "-fno-exceptions " \
                     "-fno-unwind-tables " \
+                    "-mabi=aapcs-linux " \
                     "-mfloat-abi=hard " \
-                    "-mlittle-endian " \
                     "-mthumb " \
-                    "-mno-unaligned-access " \
+                    "-nostartfiles " \
                     "-nostdlib "
 
     c_compile_flags = compile_flags + \
-                      "-Wno-pointer-sign " \
                       "-std=c11 "
 
     cxx_compile_flags = compile_flags + \
                         "-std=c++11 " \
-                        "-std=gnu++11 " \
                         "-fno-rtti " \
-                        "-fpermissive "
+                        "-fno-threadsafe-statics " \
+                        "-fno-use-cxa-atexit "
 
     if target == "cortex-m4":
 
-        cortex_m4_compile_flags = "-DARM_CMSIS_NN_M4 " \
-                                  "-DARM_MATH_CM4 " \
+        cortex_m4_compile_flags = "-DARM_MATH_CM4 " \
                                   "-mcpu=cortex-m4 " \
                                   "-mfpu=fpv4-sp-d16 " \
                                   "-mtune=cortex-m4"
@@ -133,8 +137,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
 
     elif target == "cortex-m7":
 
-        cortex_m7_compile_flags = "-DARM_CMSIS_NN_M7 " \
-                                  "-DARM_MATH_CM7 " \
+        cortex_m7_compile_flags = "-DARM_MATH_CM7 " \
                                   "-mcpu=cortex-m7 " \
                                   "-mfpu=fpv5-sp-d16 " \
                                   "-mtune=cortex-m7"
@@ -177,10 +180,10 @@ def make():
 
     ###########################################################################
 
-    if (not os.path.isfile("tensorflow/tensorflow/lite/micro/tools/make/gen/linux_x86_64/bin/person_detection_test")) or (not args.skip_generation):
+    if (not os.path.isfile("tensorflow/tensorflow/lite/micro/tools/make/gen/linux_x86_64/bin/person_detection_test" + ("_int8" if INT8 else ""))) or (not args.skip_generation):
         if os.system("cd tensorflow" +
         " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " clean" +
-        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " test_person_detection_test"):
+        " && make -f tensorflow/lite/micro/tools/make/Makefile -j" + str(cpus) + " test_person_detection_test" + ("_int8" if INT8 else "")):
             sys.exit("Make Failed...")
 
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
