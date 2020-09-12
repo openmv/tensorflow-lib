@@ -4,7 +4,7 @@
 
 import argparse, multiprocessing, os, re, shutil, sys
 
-INT8 = False
+INT8 = True
 
 UINT8_MODEL_C_PATH = "tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/person_detect_model_data.cc"
 UINT8_MODEL_H_PATH = "tensorflow/lite/micro/examples/person_detection/person_detect_model_data.h"
@@ -80,59 +80,48 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
 def build_target(target, __folder__, args, cpus, builddir, libdir):
 
-    compile_flags = "-D__FPU_PRESENT=1 " \
-                    "-D__FPU_USED=1 " \
-                    "-D__ARM_FEATURE_DSP=1 " \
+    compile_flags = "-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK " \
                     "-DNDEBUG " \
                     "-DTF_LITE_MCU_DEBUG_LOG " \
                     "-DTF_LITE_STATIC_MEMORY " \
-                    "-DARM_MATH_DSP " \
-                    "-DARM_NN_TRUNCATE " \
                     "-MMD " \
                     "-O3 " \
                     "-Wall " \
+                    "-Warray-bounds " \
                     "-Wextra " \
                     "-Wvla " \
-                    "-Wno-format " \
                     "-Wno-missing-field-initializers " \
-                    "-Wno-parentheses " \
-                    "-Wno-return-type " \
-                    "-Wno-sign-compare " \
                     "-Wno-strict-aliasing " \
                     "-Wno-type-limits " \
                     "-Wno-unused-but-set-variable " \
                     "-Wno-unused-parameter " \
                     "-Wno-unused-variable " \
-                    "-Wno-write-strings " \
                     "-fdata-sections " \
                     "-ffunction-sections " \
                     "-fmessage-length=0 " \
                     "-fomit-frame-pointer " \
                     "-funsigned-char " \
-                    "-fno-builtin " \
                     "-fno-delete-null-pointer-checks " \
                     "-fno-exceptions " \
                     "-fno-unwind-tables " \
+                    "-mabi=aapcs-linux " \
                     "-mfloat-abi=hard " \
-                    "-mlittle-endian " \
                     "-mthumb " \
-                    "-mno-unaligned-access " \
+                    "-nostartfiles " \
                     "-nostdlib "
 
     c_compile_flags = compile_flags + \
-                      "-Wno-pointer-sign " \
                       "-std=c11 "
 
     cxx_compile_flags = compile_flags + \
                         "-std=c++11 " \
-                        "-std=gnu++11 " \
                         "-fno-rtti " \
-                        "-fpermissive "
+                        "-fno-threadsafe-statics " \
+                        "-fno-use-cxa-atexit "
 
     if target == "cortex-m4":
 
-        cortex_m4_compile_flags = "-DARM_CMSIS_NN_M4 " \
-                                  "-DARM_MATH_CM4 " \
+        cortex_m4_compile_flags = "-DARM_MATH_CM4 " \
                                   "-mcpu=cortex-m4 " \
                                   "-mfpu=fpv4-sp-d16 " \
                                   "-mtune=cortex-m4"
@@ -146,8 +135,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
 
     elif target == "cortex-m7":
 
-        cortex_m7_compile_flags = "-DARM_CMSIS_NN_M7 " \
-                                  "-DARM_MATH_CM7 " \
+        cortex_m7_compile_flags = "-DARM_MATH_CM7 " \
                                   "-mcpu=cortex-m7 " \
                                   "-mfpu=fpv5-sp-d16 " \
                                   "-mtune=cortex-m7"
