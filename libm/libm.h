@@ -156,3 +156,13 @@ long double __polevll(long double, const long double *, int);
 long double __p1evll(long double, const long double *, int);
 
 #endif
+
+#ifdef __GNUC__
+#define predict_true(x) __builtin_expect(!!(x), 1)
+#define predict_false(x) __builtin_expect(x, 0)
+#else
+#define predict_true(x) (x)
+#define predict_false(x) (x)
+#endif
+
+
