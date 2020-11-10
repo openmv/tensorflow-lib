@@ -15,6 +15,16 @@ INT8_MODEL_H_PATH = "tensorflow/lite/micro/examples/person_detection_experimenta
 MODEL_C_PATH = INT8_MODEL_C_PATH if INT8 else UINT8_MODEL_C_PATH
 MODEL_H_PATH = INT8_MODEL_H_PATH if INT8 else UINT8_MODEL_H_PATH
 
+def patch_files(dir_path):
+    for dname, dirs, files in os.walk(dir_path):
+        for fname in files:
+            fpath = os.path.join(dname, fname)
+            with open(fpath) as f:
+                s = f.read()
+            s = s.replace("fprintf", "(void)")
+            with open(fpath, "w") as f:
+                f.write(s)
+
 def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_compile_flags, cxx_compile_flags):
 
     print("==============================\n Building Target - " + target + "\n==============================")
@@ -35,8 +45,66 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
     shutil.copytree("libm",
                     os.path.join(builddir, target, "libm"))
 
+    shutil.copytree("tensorflow/tensorflow/lite/micro/tools/make/downloads/kissfft/",
+                    os.path.join(builddir, target, "kissfft"))
+
+    shutil.copytree("tensorflow/tensorflow/lite/experimental/microfrontend",
+                    os.path.join(builddir, target, "microfrontend"))
+
+    shutil.copytree("tensorflow/tensorflow/lite/micro/examples/micro_speech/micro_features/",
+                    os.path.join(builddir, target, "micro_features"))
+
+    patch_files(os.path.join(builddir, target, "kissfft"))
+    patch_files(os.path.join(builddir, target, "microfrontend"))
+    patch_files(os.path.join(builddir, target, "micro_features"))
+
+    SRCS = [
+        "SRCS :=",
+        "libtf.cc",
+        "libm/exp.c",
+        "libm/floor.c",
+        "libm/fmaxf.c",
+        "libm/fminf.c",
+        "libm/frexp.c",
+        "libm/round.c",
+        "libm/sqrt.c",
+        "libm/scalbn.c",
+        "libm/cos.c",
+        "libm/__cos.c",
+        "libm/sin.c",
+        "libm/__sin.c",
+        "libm/log1p.c",
+        "libm/__rem_pio2.c",
+        "libm/__rem_pio2_large.c",
+        "kissfft/kiss_fft.c",
+        "kissfft/tools/kiss_fftr.c",
+        "microfrontend/lib/noise_reduction_io.c",
+        "microfrontend/lib/filterbank_io.c",
+        "microfrontend/lib/log_scale_util.c",
+        "microfrontend/lib/fft_util.cc",
+        "microfrontend/lib/log_lut.c",
+        "microfrontend/lib/filterbank_util.c",
+        "microfrontend/lib/frontend_memmap_generator.c",
+        "microfrontend/lib/window.c",
+        "microfrontend/lib/pcan_gain_control_util.c",
+        "microfrontend/lib/frontend_io.c",
+        "microfrontend/lib/frontend.c",
+        "microfrontend/lib/window_util.c",
+        "microfrontend/lib/fft.cc",
+        "microfrontend/lib/log_scale_io.c",
+        "microfrontend/lib/filterbank.c",
+        "microfrontend/lib/fft_io.c",
+        "microfrontend/lib/noise_reduction_util.c",
+        "microfrontend/lib/noise_reduction.c",
+        "microfrontend/lib/log_scale.c",
+        "microfrontend/lib/frontend_util.c",
+        "microfrontend/lib/pcan_gain_control.c",
+        "micro_features/micro_features_generator.cc",
+        "\\"
+    ]
+
     with open(os.path.join(builddir, target, "Makefile"), 'r') as original:
-        data = original.read().replace("SRCS := \\", "SRCS := libtf.cc libm/exp.c libm/floor.c libm/fmaxf.c libm/fminf.c libm/frexp.c libm/round.c libm/scalbn.c \\")
+        data = original.read().replace("SRCS := \\", " ".join(SRCS))
         data = data.replace("-std=c++11 -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
         data = data.replace("-std=c11   -DTF_LITE_STATIC_MEMORY -DNDEBUG -O3 ", "")
         data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
@@ -46,12 +114,13 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
         data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/person_model_grayscale/\S*", "", data)
         data = re.sub(r"tensorflow/lite/micro/tools/make/downloads/person_model_int8/\S*", "", data)
 
-    cmsis_nn_includes = " -I./tensorflow/lite/micro/tools/make/downloads" \
-                        " -I./../../tensorflow/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include"
+    extra_includes = " -I./../../tensorflow/" \
+                     " -I./tensorflow/lite/micro/tools/make/downloads" \
+                     " -I./../../tensorflow/tensorflow/lite/micro/tools/make/downloads/cmsis/CMSIS/Core/Include"
 
     with open(os.path.join(builddir, target, "Makefile"), 'w') as modified:
-        modified.write("CCFLAGS = " + c_compile_flags + cmsis_nn_includes + "\n")
-        modified.write("CXXFLAGS = " + cxx_compile_flags + cmsis_nn_includes + "\n")
+        modified.write("CCFLAGS = " + c_compile_flags + extra_includes + "\n")
+        modified.write("CXXFLAGS = " + cxx_compile_flags + extra_includes + "\n")
         modified.write(data)
 
     shutil.copy(os.path.join(__folder__, "libtf.cc"), os.path.join(builddir, target))
@@ -97,6 +166,10 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
                     "-Wno-unused-but-set-variable " \
                     "-Wno-unused-parameter " \
                     "-Wno-unused-variable " \
+                    "-Wno-unused-value " \
+                    "-Wno-error=sign-compare " \
+                    "-Wno-error=nonnull " \
+                    "-Wno-error=unused-value " \
                     "-fdata-sections " \
                     "-ffunction-sections " \
                     "-fmessage-length=0 " \
