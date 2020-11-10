@@ -8,7 +8,9 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
+#include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h"
 #include "libtf.h"
+#include <stdio.h>
 
 extern "C" {
 
@@ -360,6 +362,30 @@ extern "C" {
             return 1;
         }
 
+        return 0;
+    }
+
+    int libtf_initialize_micro_features()
+    {
+        tflite::MicroErrorReporter micro_error_reporter;
+        tflite::ErrorReporter *error_reporter = &micro_error_reporter;
+
+        if (InitializeMicroFeatures(error_reporter) != kTfLiteOk) {
+            return 1;
+        }
+        return 0;
+    }
+
+    int libtf_generate_micro_features(const int16_t* input, int input_size,
+            int output_size, int8_t* output, size_t* num_samples_read)
+    {
+        tflite::MicroErrorReporter micro_error_reporter;
+        tflite::ErrorReporter *error_reporter = &micro_error_reporter;
+
+        if (GenerateMicroFeatures(error_reporter, input, input_size,
+                    output_size, output, num_samples_read) != kTfLiteOk) {
+            return 1;
+        }
         return 0;
     }
 }
