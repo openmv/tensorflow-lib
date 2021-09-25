@@ -1,5 +1,3 @@
-[submodule "tensorflow"]
-	path = tensorflow
-	branch = openmv
-	url = https://github.com/openmv/tensorflow.git
-
+[submodule "tflite-micro"]
+	path = tflite-micro
+	url = git@github.com:openmv/tflite-micro.git
