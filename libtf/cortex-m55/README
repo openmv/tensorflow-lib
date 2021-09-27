@@ -1,0 +1,5 @@
+You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().
+
+C Compile Flags: -DARM_MATH_CM55 -mfloat-abi=hard -mtune=cortex-m55
+
+CXX Compile Flags: -DARM_MATH_CM55 -mfloat-abi=hard -mtune=cortex-m55
