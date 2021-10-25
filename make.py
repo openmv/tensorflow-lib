@@ -119,9 +119,9 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
 
     with open(os.path.join(builddir, target, tflite_micro_project_folder, "Makefile"), 'r') as original:
         data = original.read().replace("SRCS := \\", " ".join(SRCS))
+        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
         data = re.sub(r"TARGET_TOOLCHAIN_ROOT := \S*", "TARGET_TOOLCHAIN_ROOT := " + gcc_embedded_folder + "/", data)
         data = re.sub(r" tensorflow/lite/micro/examples/\S*", "", data)
-        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
         data = data.replace("-Wdouble-promotion ", " ")
         data = data.replace("-Wsign-compare ", " ")
 
