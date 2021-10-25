@@ -32,7 +32,7 @@ def patch_files(dir_path):
             with open(fpath, "w") as f:
                 f.write(s)
 
-def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_compile_flags, cxx_compile_flags):
+def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
 
     print("==============================\n Building Target - " + target + "\n==============================")
 
@@ -114,14 +114,16 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
     ]
 
     gcc_embedded_folder = os.path.join(__folder__, os.path.join(TF_TOP_MICRO_PATH, "tools/make/downloads/gcc_embedded/bin"))
+
     arm_none_eabi_gpp = os.path.join(gcc_embedded_folder, "arm-none-eabi-g++")
     arm_none_eabi_ar = os.path.join(gcc_embedded_folder, "arm-none-eabi-ar")
 
     with open(os.path.join(builddir, target, tflite_micro_project_folder, "Makefile"), 'r') as original:
-        data = original.read().replace("SRCS := \\", " ".join(SRCS))
-        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
+        data = original.read()
         data = re.sub(r"TARGET_TOOLCHAIN_ROOT := \S*", "TARGET_TOOLCHAIN_ROOT := " + gcc_embedded_folder + "/", data)
+        data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
         data = re.sub(r" tensorflow/lite/micro/examples/\S*", "", data)
+        data = data.replace("SRCS := \\", " ".join(SRCS))
         data = data.replace("-Wdouble-promotion ", " ")
         data = data.replace("-Wsign-compare ", " ")
 
@@ -169,62 +171,18 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_co
     shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "LICENSE"), os.path.join(libdir, target))
 
     with open(os.path.join(libdir, target, "README"), "w") as f:
-        f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n\n")
-        f.write("C Compile Flags: " + c_compile_flags + "\n\n")
-        f.write("CXX Compile Flags: " + cxx_compile_flags + "\n")
+        f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n")
 
 def build_target(target, __folder__, args, cpus, builddir, libdir):
 
-    compile_flags = ""
-    c_compile_flags = compile_flags
-    cxx_compile_flags = compile_flags
-
     if target == "cortex-m0plus":
-
-        cortex_m0_plus_compile_flags = "-DARM_MATH_CM0PLUS " \
-                                       "-mcpu=cortex-m0plus " \
-                                       "-mtune=cortex-m0plus"
-
-        cortex_m0_plus_c_compile_flags = c_compile_flags + cortex_m0_plus_compile_flags
-        cortex_m0_plus_cxx_compile_flags = cxx_compile_flags + cortex_m0_plus_compile_flags
-        generate(target, "cortex-m0plus", __folder__, args, cpus, builddir, libdir,
-                 cortex_m0_plus_c_compile_flags, cortex_m0_plus_cxx_compile_flags)
-
+        generate(target, "cortex-m0plus", __folder__, args, cpus, builddir, libdir)
     elif target == "cortex-m4":
-
-        cortex_m4_compile_flags = "-DARM_MATH_CM4 " \
-                                  "-mfpu=fpv4-sp-d16 " \
-                                  "-mfloat-abi=hard " \
-                                  "-mtune=cortex-m4"
-
-        cortex_m4_c_compile_flags = c_compile_flags + cortex_m4_compile_flags
-        cortex_m4_cxx_compile_flags = cxx_compile_flags + cortex_m4_compile_flags
-        generate(target, "cortex-m4+fp", __folder__, args, cpus, builddir, libdir,
-                 cortex_m4_c_compile_flags, cortex_m4_cxx_compile_flags)
-
+        generate(target, "cortex-m4+fp", __folder__, args, cpus, builddir, libdir)
     elif target == "cortex-m7":
-
-        cortex_m7_compile_flags = "-DARM_MATH_CM7 " \
-                                  "-mfpu=fpv5-sp-d16 " \
-                                  "-mfloat-abi=hard " \
-                                  "-mtune=cortex-m7"
-
-        cortex_m7_c_compile_flags = c_compile_flags + cortex_m7_compile_flags
-        cortex_m7_cxx_compile_flags = cxx_compile_flags + cortex_m7_compile_flags
-        generate(target, "cortex-m7+fp", __folder__, args, cpus, builddir, libdir,
-                 cortex_m7_c_compile_flags, cortex_m7_cxx_compile_flags)
-
+        generate(target, "cortex-m7+fp", __folder__, args, cpus, builddir, libdir)
     elif target == "cortex-m55":
-
-        cortex_m55_compile_flags = "-DARM_MATH_CM55 " \
-                                   "-mfloat-abi=hard " \
-                                   "-mtune=cortex-m55"
-
-        cortex_m55_c_compile_flags = c_compile_flags + cortex_m55_compile_flags
-        cortex_m55_cxx_compile_flags = cxx_compile_flags + cortex_m55_compile_flags
-        generate(target, "cortex-m55", __folder__, args, cpus, builddir, libdir,
-                 cortex_m55_c_compile_flags, cortex_m55_cxx_compile_flags)
-
+        generate(target, "cortex-m55", __folder__, args, cpus, builddir, libdir)
     else:
         sys.exit("Unknown target!")
 

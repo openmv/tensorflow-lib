@@ -1,5 +1,1 @@
 You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().
-
-C Compile Flags: -DARM_MATH_CM7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mtune=cortex-m7
-
-CXX Compile Flags: -DARM_MATH_CM7 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mtune=cortex-m7
