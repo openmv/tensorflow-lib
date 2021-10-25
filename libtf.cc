@@ -5,11 +5,13 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "libtf.h"
+
+#define LIBTF_MAX_OPS 16
 
 extern "C" {
 
@@ -65,6 +67,88 @@ extern "C" {
         }
     }
 
+    static void libtf_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver)
+    {
+        // resolver.AddAbs();
+        resolver.AddAdd();
+        // resolver.AddAddN();
+        // resolver.AddArgMax();
+        // resolver.AddArgMin();
+        // resolver.AddAssignVariable();
+        resolver.AddAveragePool2D();
+        // resolver.AddBatchToSpaceNd();
+        // resolver.AddCallOnce();
+        // resolver.AddCeil();
+        // resolver.AddConcatenation();
+        resolver.AddConv2D();
+        // resolver.AddCos();
+        // resolver.AddCumSum();
+        // resolver.AddDepthToSpace();
+        resolver.AddDepthwiseConv2D();
+        // resolver.AddDequantize();
+        // resolver.AddDetectionPostprocess();
+        // resolver.AddElu();
+        // resolver.AddEqual();
+        // resolver.AddEthosU();
+        // resolver.AddExpandDims();
+        // resolver.AddFloor();
+        // resolver.AddFloorDiv();
+        // resolver.AddFloorMod();
+        resolver.AddFullyConnected();
+        // resolver.AddGreater();
+        // resolver.AddGreaterEqual();
+        // resolver.AddHardSwish();
+        resolver.AddL2Normalization();
+        resolver.AddL2Pool2D();
+        // resolver.AddLeakyRelu();
+        // resolver.AddLess();
+        // resolver.AddLessEqual();
+        // resolver.AddLog();
+        // resolver.AddLogicalAnd();
+        // resolver.AddLogicalNot();
+        // resolver.AddLogicalOr();
+        // resolver.AddLogistic();
+        resolver.AddMaxPool2D();
+        // resolver.AddMaximum();
+        // resolver.AddMean();
+        // resolver.AddMinimum();
+        // resolver.AddMul();
+        // resolver.AddNeg();
+        // resolver.AddNotEqual();
+        // resolver.AddPack();
+        resolver.AddPad();
+        resolver.AddPadV2();
+        resolver.AddPrelu();
+        // resolver.AddQuantize();
+        // resolver.AddReadVariable();
+        // resolver.AddReduceMax();
+        resolver.AddRelu();
+        resolver.AddRelu6();
+        resolver.AddReshape();
+        // resolver.AddResizeBilinear();
+        // resolver.AddResizeNearestNeighbor();
+        // resolver.AddRound();
+        // resolver.AddRsqrt();
+        // resolver.AddShape();
+        // resolver.AddSin();
+        resolver.AddSoftmax();
+        // resolver.AddSpaceToBatchNd();
+        // resolver.AddSpaceToDepth();
+        // resolver.AddSplit();
+        // resolver.AddSplitV();
+        // resolver.AddSqrt();
+        // resolver.AddSquare();
+        // resolver.AddSqueeze();
+        // resolver.AddStridedSlice();
+        resolver.AddSub();
+        // resolver.AddSvdf();
+        // resolver.AddTanh();
+        // resolver.AddTranspose();
+        // resolver.AddTransposeConv();
+        // resolver.AddUnpack();
+        // resolver.AddVarHandle();
+    }
+
     int libtf_get_parameters(const unsigned char *model_data,
                              unsigned char *tensor_arena, size_t tensor_arena_size,
                              libtf_parameters_t *params)
@@ -86,7 +170,9 @@ extern "C" {
             return 1;
         }
 
-        tflite::AllOpsResolver resolver;
+        tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> resolver;
+        libtf_init_op_resolver(resolver);
+
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
@@ -231,7 +317,9 @@ extern "C" {
             return 1;
         }
 
-        tflite::AllOpsResolver resolver;
+        tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> resolver;
+        libtf_init_op_resolver(resolver);
+
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
