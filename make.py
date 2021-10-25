@@ -32,7 +32,7 @@ def patch_files(dir_path):
             with open(fpath, "w") as f:
                 f.write(s)
 
-def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
+def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_flags, cxx_flags):
 
     print("==============================\n Building Target - " + target + "\n==============================")
 
@@ -53,6 +53,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
     tflite_micro_project_folder = os.path.join("prj", MAKE_PROJECT, "make")
     tflite_micro_gen_folder = "genfiles/tensorflow/lite/micro/models"
 
+    shutil.copytree("libc", os.path.join(builddir, target, tflite_micro_project_folder, "libc"))
     shutil.copytree("libm", os.path.join(builddir, target, tflite_micro_project_folder, "libm"))
 
     shutil.copytree(os.path.join(TF_TOP_MICRO_PATH, "tools/make/downloads/kissfft"),
@@ -71,6 +72,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
     SRCS = [
         "SRCS :=",
         "libtf.cc",
+        "libc/bsearch.c",
         "libm/exp.c",
         "libm/floor.c",
         "libm/fmaxf.c",
@@ -126,6 +128,41 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
         data = data.replace("-Wdouble-promotion ", " ")
         data = data.replace("-Wsign-compare ", " ")
 
+    with open(os.path.join(builddir, target, tflite_micro_project_folder, "Makefile"), 'w') as modified:
+        modified.write("CCFLAGS = " + c_flags + "\n")
+        modified.write("CXXFLAGS = " + cxx_flags + "\n")
+        modified.write(data)
+
+    shutil.copy(os.path.join(__folder__, "libtf.cc"), os.path.join(builddir, target, tflite_micro_project_folder))
+    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(builddir, target, tflite_micro_project_folder))
+
+    if os.system("cd " + os.path.join(builddir, target, tflite_micro_project_folder) +
+        " && make -j " + str(cpus) + " lib"):
+        sys.exit("Make Failed...")
+
+    if os.system("cd " + os.path.join(builddir, target, tflite_micro_gen_folder) +
+        " && sed -i '1,2d' person_detect_model_data.cc" +
+        " && sed -i '1s/^............//' person_detect_model_data.cc" +
+        " && mv person_detect_model_data.cc person_detect_model_data.c" +
+        " && " + arm_none_eabi_gcc + " " + c_flags + " -o libtf_person_detect_model_data.o -c person_detect_model_data.c" +
+        " && " + arm_none_eabi_ar + " rcs libtf_person_detect_model_data.a libtf_person_detect_model_data.o" +
+        " && cp person_detect_model_data.h libtf_person_detect_model_data.h"):
+        sys.exit("Make Failed...")
+
+    if not os.path.exists((os.path.join(libdir, target))):
+        os.mkdir(os.path.join(libdir, target))
+
+    shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "libtensorflow-microlite.a"), os.path.join(libdir, target, "libtf.a"))
+    shutil.copy(os.path.join(builddir, target, tflite_micro_gen_folder, "libtf_person_detect_model_data.a"), os.path.join(libdir, target))
+    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(libdir, target))
+    shutil.copy(os.path.join(builddir, target, tflite_micro_gen_folder, "libtf_person_detect_model_data.h"), os.path.join(libdir, target))
+    shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "LICENSE"), os.path.join(libdir, target))
+
+    with open(os.path.join(libdir, target, "README"), "w") as f:
+        f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n")
+
+def build_target(target, __folder__, args, cpus, builddir, libdir):
+
     FLAGS = [
         "-Wno-double-promotion",
         "-Wno-nonnull",
@@ -150,51 +187,60 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
         "-I./" + os.path.join(TF_TOOLS_DOWNLOADS_PATH, "kissfft")
     ]
 
-    flags_string = " ".join(FLAGS)
-    c_flags = flags_string
-    cxx_flags = flags_string + " -fno-use-cxa-atexit"
-
-    with open(os.path.join(builddir, target, tflite_micro_project_folder, "Makefile"), 'w') as modified:
-        modified.write("CCFLAGS = " + c_flags + "\n")
-        modified.write("CXXFLAGS = " + cxx_flags + "\n")
-        modified.write(data)
-
-    shutil.copy(os.path.join(__folder__, "libtf.cc"), os.path.join(builddir, target, tflite_micro_project_folder))
-    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(builddir, target, tflite_micro_project_folder))
-
-    if os.system("cd " + os.path.join(builddir, target, tflite_micro_project_folder) +
-        " && make -j " + str(cpus) + " lib"):
-        sys.exit("Make Failed...")
-
-    if os.system("cd " + os.path.join(builddir, target, tflite_micro_gen_folder) +
-        " && sed -i '1,2d' person_detect_model_data.cc" +
-        " && " + arm_none_eabi_gcc + " -o libtf_person_detect_model_data.o -c person_detect_model_data.cc" +
-        " && " + arm_none_eabi_ar + " rcs libtf_person_detect_model_data.a libtf_person_detect_model_data.o" +
-        " && cp person_detect_model_data.h libtf_person_detect_model_data.h"):
-        sys.exit("Make Failed...")
-
-    if not os.path.exists((os.path.join(libdir, target))):
-        os.mkdir(os.path.join(libdir, target))
-
-    shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "libtensorflow-microlite.a"), os.path.join(libdir, target, "libtf.a"))
-    shutil.copy(os.path.join(builddir, target, tflite_micro_gen_folder, "libtf_person_detect_model_data.a"), os.path.join(libdir, target))
-    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(libdir, target))
-    shutil.copy(os.path.join(builddir, target, tflite_micro_gen_folder, "libtf_person_detect_model_data.h"), os.path.join(libdir, target))
-    shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "LICENSE"), os.path.join(libdir, target))
-
-    with open(os.path.join(libdir, target, "README"), "w") as f:
-        f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n")
-
-def build_target(target, __folder__, args, cpus, builddir, libdir):
+    compile_flags = " ".join(FLAGS)
+    c_compile_flags = compile_flags
+    cxx_compile_flags = compile_flags + " -fno-use-cxa-atexit"
 
     if target == "cortex-m0plus":
-        generate(target, "cortex-m0plus", __folder__, args, cpus, builddir, libdir)
+
+        cortex_m0_plus_compile_flags = " -DARM_MATH_CM0PLUS" \
+                                       " -mcpu=cortex-m0plus" \
+                                       " -mfloat-abi=soft" \
+                                       " -mtune=cortex-m0plus"
+
+        cortex_m0_plus_c_compile_flags = c_compile_flags + cortex_m0_plus_compile_flags
+        cortex_m0_plus_cxx_compile_flags = cxx_compile_flags + cortex_m0_plus_compile_flags
+        generate(target, "cortex-m0plus", __folder__, args, cpus, builddir, libdir,
+                 cortex_m0_plus_c_compile_flags, cortex_m0_plus_cxx_compile_flags)
+
     elif target == "cortex-m4":
-        generate(target, "cortex-m4+fp", __folder__, args, cpus, builddir, libdir)
+
+        cortex_m4_compile_flags = " -DARM_MATH_CM4" \
+                                  " -mfpu=fpv4-sp-d16" \
+                                  " -mcpu=cortex-m4" \
+                                  " -mfloat-abi=hard" \
+                                  " -mtune=cortex-m4"
+
+        cortex_m4_c_compile_flags = c_compile_flags + cortex_m4_compile_flags
+        cortex_m4_cxx_compile_flags = cxx_compile_flags + cortex_m4_compile_flags
+        generate(target, "cortex-m4+fp", __folder__, args, cpus, builddir, libdir,
+                 cortex_m4_c_compile_flags, cortex_m4_cxx_compile_flags)
+
     elif target == "cortex-m7":
-        generate(target, "cortex-m7+fp", __folder__, args, cpus, builddir, libdir)
+
+        cortex_m7_compile_flags = " -DARM_MATH_CM7" \
+                                  " -mfpu=fpv5-sp-d16" \
+                                  " -mcpu=cortex-m7" \
+                                  " -mfloat-abi=hard" \
+                                  " -mtune=cortex-m7"
+
+        cortex_m7_c_compile_flags = c_compile_flags + cortex_m7_compile_flags
+        cortex_m7_cxx_compile_flags = cxx_compile_flags + cortex_m7_compile_flags
+        generate(target, "cortex-m7+fp", __folder__, args, cpus, builddir, libdir,
+                 cortex_m7_c_compile_flags, cortex_m7_cxx_compile_flags)
+
     elif target == "cortex-m55":
-        generate(target, "cortex-m55", __folder__, args, cpus, builddir, libdir)
+
+        cortex_m55_compile_flags = " -DARM_MATH_CM55" \
+                                   " -mcpu=cortex-m55" \
+                                   " -mfloat-abi=hard" \
+                                   " -mtune=cortex-m55"
+
+        cortex_m55_c_compile_flags = c_compile_flags + cortex_m55_compile_flags
+        cortex_m55_cxx_compile_flags = cxx_compile_flags + cortex_m55_compile_flags
+        generate(target, "cortex-m55", __folder__, args, cpus, builddir, libdir,
+                 cortex_m55_c_compile_flags, cortex_m55_cxx_compile_flags)
+
     else:
         sys.exit("Unknown target!")
 
