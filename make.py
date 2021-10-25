@@ -114,8 +114,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
     ]
 
     gcc_embedded_folder = os.path.join(__folder__, os.path.join(TF_TOP_MICRO_PATH, "tools/make/downloads/gcc_embedded/bin"))
-
-    arm_none_eabi_gpp = os.path.join(gcc_embedded_folder, "arm-none-eabi-g++")
+    arm_none_eabi_gcc = os.path.join(gcc_embedded_folder, "arm-none-eabi-gcc")
     arm_none_eabi_ar = os.path.join(gcc_embedded_folder, "arm-none-eabi-ar")
 
     with open(os.path.join(builddir, target, tflite_micro_project_folder, "Makefile"), 'r') as original:
@@ -129,10 +128,21 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
 
     FLAGS = [
         "-Wno-double-promotion",
-        "-Wno-sign-compare",
+        "-Wno-nonnull",
         "-Wno-psabi",
+        "-Wno-sign-compare",
         "-Wno-unused-but-set-variable",
         "-Wno-unused-value",
+        "-DGEMMLOWP_ALLOW_SLOW_SCALAR_FALLBACK",
+        "-DNDEBUG",
+        "-MMD",
+        "-O3",
+        "-fshort-enums",
+        "-fno-delete-null-pointer-checks",
+        "-fno-exceptions",
+        "-mabi=aapcs-linux",
+        "-nostartfiles",
+        "-nostdlib",
         "-I./" + os.path.join(TF_TOOLS_DOWNLOADS_PATH, "cmsis"),
         "-I./" + os.path.join(TF_TOOLS_DOWNLOADS_PATH, "cmsis/CMSIS/Core/Include"),
         "-I./" + os.path.join(TF_TOOLS_DOWNLOADS_PATH, "cmsis/CMSIS/DSP/Include"),
@@ -141,10 +151,12 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
     ]
 
     flags_string = " ".join(FLAGS)
+    c_flags = flags_string
+    cxx_flags = flags_string + " -fno-use-cxa-atexit"
 
     with open(os.path.join(builddir, target, tflite_micro_project_folder, "Makefile"), 'w') as modified:
-        modified.write("CCFLAGS = " + flags_string + "\n")
-        modified.write("CXXFLAGS = " + flags_string + "\n")
+        modified.write("CCFLAGS = " + c_flags + "\n")
+        modified.write("CXXFLAGS = " + cxx_flags + "\n")
         modified.write(data)
 
     shutil.copy(os.path.join(__folder__, "libtf.cc"), os.path.join(builddir, target, tflite_micro_project_folder))
@@ -156,7 +168,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir):
 
     if os.system("cd " + os.path.join(builddir, target, tflite_micro_gen_folder) +
         " && sed -i '1,2d' person_detect_model_data.cc" +
-        " && " + arm_none_eabi_gpp + " -o libtf_person_detect_model_data.o -c person_detect_model_data.cc" +
+        " && " + arm_none_eabi_gcc + " -o libtf_person_detect_model_data.o -c person_detect_model_data.cc" +
         " && " + arm_none_eabi_ar + " rcs libtf_person_detect_model_data.a libtf_person_detect_model_data.o" +
         " && cp person_detect_model_data.h libtf_person_detect_model_data.h"):
         sys.exit("Make Failed...")
