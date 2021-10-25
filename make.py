@@ -116,6 +116,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
     ]
 
     gcc_embedded_folder = os.path.join(__folder__, os.path.join(TF_TOP_MICRO_PATH, "tools/make/downloads/gcc_embedded/bin"))
+
     arm_none_eabi_gcc = os.path.join(gcc_embedded_folder, "arm-none-eabi-gcc")
     arm_none_eabi_ar = os.path.join(gcc_embedded_folder, "arm-none-eabi-ar")
 
@@ -146,6 +147,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
         " && mv person_detect_model_data.cc person_detect_model_data.c" +
         " && " + arm_none_eabi_gcc + " " + c_flags + " -o libtf_person_detect_model_data.o -c person_detect_model_data.c" +
         " && " + arm_none_eabi_ar + " rcs libtf_person_detect_model_data.a libtf_person_detect_model_data.o" +
+        " && sed -i -e '$a\\' person_detect_model_data.h" +
         " && cp person_detect_model_data.h libtf_person_detect_model_data.h"):
         sys.exit("Make Failed...")
 
