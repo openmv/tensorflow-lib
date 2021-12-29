@@ -5,22 +5,29 @@
 import argparse, multiprocessing, os, re, shutil, sys
 
 TF_TOP = "edge-impulse-sdk"
-TF_TOP_MICRO_PATH = os.path.join(TF_TOP, "tensorflow/lite/micro")
+TF_LITE = "tensorflow/lite"
+TF_LITE_MICRO = os.path.join(TF_LITE, "micro")
+
+TF_TOP_MICRO_PATH = os.path.join(TF_TOP, TF_LITE_MICRO)
 TF_TOP_GEN_PATH = os.path.join(TF_TOP_MICRO_PATH, "tools/make/gen")
 TF_TOP_EXPERIMENTAL_PATH = os.path.join(TF_TOP, "tensorflow/lite/experimental")
 
-TF_EXAMPLES_PATH = "tensorflow/lite/micro/examples"
+TF_EXAMPLES_PATH = os.path.join(TF_LITE_MICRO, "examples")
 TF_EXAMPLES_MICRO_FEATURES_PATH = os.path.join(TF_EXAMPLES_PATH, "micro_speech/micro_features")
 
 TF_EXPERIMENTAL_PATH = "tensorflow/lite/experimental"
 TF_EXPERIMENTAL_MICROFRONTEND_PATH = os.path.join(TF_EXPERIMENTAL_PATH, "microfrontend")
 
-TF_TOOLS_PATH = "tensorflow/lite/micro/tools/make"
+TF_TOOLS_PATH = os.path.join(TF_LITE_MICRO, "tools/make")
 TF_TOOLS_DOWNLOADS_PATH = os.path.join(TF_TOOLS_PATH, "downloads")
 TF_TOOLS_MAKEFILE_PATH = os.path.join(TF_TOOLS_PATH, "Makefile")
 
 MAKE_PROJECT = "person_detection_int8"
 TEST_PROJECT = "person_detection_test_int8"
+
+DEBUG_LOG_CALLBACK = "cortex_m_generic/debug_log_callback.h"
+CMSIS_GCC = "tools/make/downloads/cmsis/CMSIS/Core/Include/cmsis_gcc.h"
+PERSON_DETECT_MODEL_DATA = "tools/make/downloads/person_model_int8/person_detect_model_data.h"
 
 def patch_files(dir_path):
     for dname, dirs, files in os.walk(dir_path):
@@ -68,6 +75,15 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
     patch_files(os.path.join(builddir, target, tflite_micro_project_folder, TF_TOOLS_DOWNLOADS_PATH, "kissfft"))
     patch_files(os.path.join(builddir, target, tflite_micro_project_folder, TF_EXPERIMENTAL_MICROFRONTEND_PATH))
     patch_files(os.path.join(builddir, target, tflite_micro_project_folder, TF_EXAMPLES_MICRO_FEATURES_PATH))
+
+    shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, DEBUG_LOG_CALLBACK),
+                    os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, DEBUG_LOG_CALLBACK))
+
+    shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, CMSIS_GCC),
+                    os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, CMSIS_GCC))
+
+    shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, PERSON_DETECT_MODEL_DATA),
+                    os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, PERSON_DETECT_MODEL_DATA))
 
     SRCS = [
         "SRCS :=",
@@ -126,8 +142,12 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
         data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
         data = re.sub(r" tensorflow/lite/micro/examples/\S*", "", data)
         data = data.replace("SRCS := \\", " ".join(SRCS))
+        data = data.replace("-Wall ", " ")
         data = data.replace("-Wdouble-promotion ", " ")
         data = data.replace("-Wsign-compare ", " ")
+        data = data.replace("-Wstrict-aliasing ", " ")
+        data = data.replace("-Wunused-variable ", " ")
+        data = data.replace("-Wno-unused-private-field ", " ")
 
     with open(os.path.join(builddir, target, tflite_micro_project_folder, "Makefile"), 'w') as modified:
         modified.write("CCFLAGS = " + c_flags + "\n")
@@ -141,23 +161,11 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
         " && make -j " + str(cpus) + " lib"):
         sys.exit("Make Failed...")
 
-    if os.system("cd " + os.path.join(builddir, target, tflite_micro_gen_folder) +
-        " && sed -i '1,2d' person_detect_model_data.cc" +
-        " && sed -i '1s/^............//' person_detect_model_data.cc" +
-        " && mv person_detect_model_data.cc person_detect_model_data.c" +
-        " && " + arm_none_eabi_gcc + " " + c_flags + " -o libtf_person_detect_model_data.o -c person_detect_model_data.c" +
-        " && " + arm_none_eabi_ar + " rcs libtf_person_detect_model_data.a libtf_person_detect_model_data.o" +
-        " && sed -i -e '$a\\' person_detect_model_data.h" +
-        " && cp person_detect_model_data.h libtf_person_detect_model_data.h"):
-        sys.exit("Make Failed...")
-
     if not os.path.exists((os.path.join(libdir, target))):
         os.mkdir(os.path.join(libdir, target))
 
     shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "libtensorflow-microlite.a"), os.path.join(libdir, target, "libtf.a"))
-    shutil.copy(os.path.join(builddir, target, tflite_micro_gen_folder, "libtf_person_detect_model_data.a"), os.path.join(libdir, target))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(libdir, target))
-    shutil.copy(os.path.join(builddir, target, tflite_micro_gen_folder, "libtf_person_detect_model_data.h"), os.path.join(libdir, target))
     shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "LICENSE"), os.path.join(libdir, target))
 
     with open(os.path.join(libdir, target, "README"), "w") as f:
@@ -290,7 +298,7 @@ def make():
         " && make -f " + TF_TOOLS_MAKEFILE_PATH + " -j" + str(cpus) + " test_" + TEST_PROJECT):
             sys.exit("Make Failed...")
 
-    build_target("cortex-m0plus", __folder__, args, cpus, builddir, libdir)
+    # build_target("cortex-m0plus", __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m7", __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m55", __folder__, args, cpus, builddir, libdir)

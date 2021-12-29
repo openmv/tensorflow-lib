@@ -11,7 +11,7 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "libtf.h"
 
-#define LIBTF_MAX_OPS 16
+#define LIBTF_MAX_OPS 64
 
 extern "C" {
 
@@ -69,83 +69,83 @@ extern "C" {
 
     static void libtf_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver)
     {
-        // resolver.AddAbs();
+        resolver.AddAbs();
         resolver.AddAdd();
         // resolver.AddAddN();
-        // resolver.AddArgMax();
-        // resolver.AddArgMin();
+        resolver.AddArgMax();
+        resolver.AddArgMin();
         // resolver.AddAssignVariable();
         resolver.AddAveragePool2D();
         // resolver.AddBatchToSpaceNd();
         // resolver.AddCallOnce();
-        // resolver.AddCeil();
-        // resolver.AddConcatenation();
+        resolver.AddCeil();
+        resolver.AddConcatenation();
         resolver.AddConv2D();
-        // resolver.AddCos();
+        resolver.AddCos();
         // resolver.AddCumSum();
         // resolver.AddDepthToSpace();
         resolver.AddDepthwiseConv2D();
-        // resolver.AddDequantize();
+        resolver.AddDequantize();
         // resolver.AddDetectionPostprocess();
         // resolver.AddElu();
-        // resolver.AddEqual();
+        resolver.AddEqual();
         // resolver.AddEthosU();
         // resolver.AddExpandDims();
-        // resolver.AddFloor();
+        resolver.AddFloor();
         // resolver.AddFloorDiv();
         // resolver.AddFloorMod();
         resolver.AddFullyConnected();
-        // resolver.AddGreater();
-        // resolver.AddGreaterEqual();
-        // resolver.AddHardSwish();
+        resolver.AddGreater();
+        resolver.AddGreaterEqual();
+        resolver.AddHardSwish();
         resolver.AddL2Normalization();
-        resolver.AddL2Pool2D();
+        // resolver.AddL2Pool2D();
         // resolver.AddLeakyRelu();
-        // resolver.AddLess();
-        // resolver.AddLessEqual();
-        // resolver.AddLog();
-        // resolver.AddLogicalAnd();
-        // resolver.AddLogicalNot();
-        // resolver.AddLogicalOr();
-        // resolver.AddLogistic();
+        resolver.AddLess();
+        resolver.AddLessEqual();
+        resolver.AddLog();
+        resolver.AddLogicalAnd();
+        resolver.AddLogicalNot();
+        resolver.AddLogicalOr();
+        resolver.AddLogistic();
+        resolver.AddMaximum();
         resolver.AddMaxPool2D();
-        // resolver.AddMaximum();
-        // resolver.AddMean();
-        // resolver.AddMinimum();
-        // resolver.AddMul();
-        // resolver.AddNeg();
-        // resolver.AddNotEqual();
-        // resolver.AddPack();
+        resolver.AddMean();
+        resolver.AddMinimum();
+        resolver.AddMul();
+        resolver.AddNeg();
+        resolver.AddNotEqual();
+        resolver.AddPack();
         resolver.AddPad();
         resolver.AddPadV2();
         resolver.AddPrelu();
-        // resolver.AddQuantize();
+        resolver.AddQuantize();
         // resolver.AddReadVariable();
-        // resolver.AddReduceMax();
+        resolver.AddReduceMax();
         resolver.AddRelu();
         resolver.AddRelu6();
         resolver.AddReshape();
         // resolver.AddResizeBilinear();
-        // resolver.AddResizeNearestNeighbor();
-        // resolver.AddRound();
-        // resolver.AddRsqrt();
-        // resolver.AddShape();
-        // resolver.AddSin();
+        resolver.AddResizeNearestNeighbor();
+        resolver.AddRound();
+        resolver.AddRsqrt();
+        resolver.AddShape();
+        resolver.AddSin();
         resolver.AddSoftmax();
         // resolver.AddSpaceToBatchNd();
         // resolver.AddSpaceToDepth();
-        // resolver.AddSplit();
-        // resolver.AddSplitV();
-        // resolver.AddSqrt();
-        // resolver.AddSquare();
+        resolver.AddSplit();
+        resolver.AddSplitV();
+        resolver.AddSqrt();
+        resolver.AddSquare();
         // resolver.AddSqueeze();
-        // resolver.AddStridedSlice();
+        resolver.AddStridedSlice();
         resolver.AddSub();
-        // resolver.AddSvdf();
-        // resolver.AddTanh();
+        resolver.AddSvdf();
+        resolver.AddTanh();
         // resolver.AddTranspose();
         // resolver.AddTransposeConv();
-        // resolver.AddUnpack();
+        resolver.AddUnpack();
         // resolver.AddVarHandle();
     }
 
