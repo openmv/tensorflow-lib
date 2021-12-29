@@ -4,7 +4,7 @@
 
 import argparse, multiprocessing, os, re, shutil, sys
 
-TF_TOP = "tflite-micro"
+TF_TOP = "edge-impulse-sdk"
 TF_TOP_MICRO_PATH = os.path.join(TF_TOP, "tensorflow/lite/micro")
 TF_TOP_GEN_PATH = os.path.join(TF_TOP_MICRO_PATH, "tools/make/gen")
 TF_TOP_EXPERIMENTAL_PATH = os.path.join(TF_TOP, "tensorflow/lite/experimental")
