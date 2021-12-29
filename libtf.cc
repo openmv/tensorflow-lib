@@ -180,7 +180,7 @@ extern "C" {
             return 1;
         }
 
-        params->tensor_arena_size = interpreter.arena_used_bytes();
+        params->tensor_arena_size = interpreter.arena_used_bytes() + 1024;
 
         // Handle input parameters.
         {
