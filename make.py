@@ -27,7 +27,9 @@ TEST_PROJECT = "person_detection_test_int8"
 
 DEBUG_LOG_CALLBACK = "cortex_m_generic/debug_log_callback.h"
 CMSIS_GCC = "tools/make/downloads/cmsis/CMSIS/Core/Include/cmsis_gcc.h"
-PERSON_DETECT_MODEL_DATA = "tools/make/downloads/person_model_int8/person_detect_model_data.h"
+PERSON_DETECT_MODEL_DATA_C = "tools/make/downloads/person_model_int8/person_detect_model_data.cc"
+PERSON_DETECT_MODEL_DATA_H = "tools/make/downloads/person_model_int8/person_detect_model_data.h"
+PERSON_DETECT_MODEL_LABELS = "person\nno_person\n"
 
 def patch_files(dir_path):
     for dname, dirs, files in os.walk(dir_path):
@@ -38,6 +40,20 @@ def patch_files(dir_path):
             s = s.replace("fprintf", "(void)")
             with open(fpath, "w") as f:
                 f.write(s)
+
+def convert_model(src, dst):
+    # https://gist.github.com/petewarden/493294425ac522f00ff45342c71939d7
+    output_data = bytearray()
+    with open(src, 'r') as file:
+        for line in file:
+            values_match = re.match(r"\W*(0x[0-9a-fA-F,x ]+).*", line)
+            if values_match:
+                list_text = values_match.group(1)
+                values_text = filter(None, list_text.split(","))
+                values = [int(x, base=16) for x in values_text]
+                output_data.extend(values)
+    with open(dst, 'wb') as output_file:
+        output_file.write(output_data)
 
 def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_flags, cxx_flags):
 
@@ -82,8 +98,8 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
     shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, CMSIS_GCC),
                     os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, CMSIS_GCC))
 
-    shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, PERSON_DETECT_MODEL_DATA),
-                    os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, PERSON_DETECT_MODEL_DATA))
+    shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, PERSON_DETECT_MODEL_DATA_H),
+                    os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, PERSON_DETECT_MODEL_DATA_H))
 
     SRCS = [
         "SRCS :=",
@@ -141,6 +157,10 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
         data = re.sub(r"TARGET_TOOLCHAIN_ROOT := \S*", "TARGET_TOOLCHAIN_ROOT := " + gcc_embedded_folder + "/", data)
         data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
         data = re.sub(r" tensorflow/lite/micro/examples/\S*", "", data)
+        data = re.sub(r" tensorflow/lite/micro/tools/make/downloads/person_model_int8/person_detect_model_data.cc", "", data)
+        data = re.sub(r" tensorflow/lite/schema/schema_generated.h", "", data)
+        data = re.sub(r" tensorflow/lite/micro/kernels/ethosu.cc", "", data)
+        data = re.sub(r" tensorflow/lite/micro/kernels/tflite_detection_postprocess.cc", "", data)
         data = data.replace("SRCS := \\", " ".join(SRCS))
         data = data.replace("-Wall ", " ")
         data = data.replace("-Wdouble-promotion ", " ")
@@ -166,7 +186,9 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
 
     shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "libtensorflow-microlite.a"), os.path.join(libdir, target, "libtf.a"))
     shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(libdir, target))
-    shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "LICENSE"), os.path.join(libdir, target))
+    shutil.copy(os.path.join(__folder__, TF_TOP, "LICENSE"), os.path.join(libdir, target))
+    convert_model(os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, PERSON_DETECT_MODEL_DATA_C), os.path.join(libdir, target, "builtin_model.tflite"))
+    with open(os.path.join(libdir, target, "builtin_labels.txt"), "w") as f: f.write(PERSON_DETECT_MODEL_LABELS)
 
     with open(os.path.join(libdir, target, "README"), "w") as f:
         f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n")
@@ -190,6 +212,8 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
         "-mabi=aapcs-linux",
         "-nostartfiles",
         "-nostdlib",
+        "-I" + os.path.join(__folder__),
+        "-I" + os.path.join(__folder__, "edge-impulse-sdk"),
         "-I./" + os.path.join(TF_TOOLS_DOWNLOADS_PATH, "cmsis"),
         "-I./" + os.path.join(TF_TOOLS_DOWNLOADS_PATH, "cmsis/CMSIS/Core/Include"),
         "-I./" + os.path.join(TF_TOOLS_DOWNLOADS_PATH, "cmsis/CMSIS/DSP/Include"),
@@ -292,13 +316,11 @@ def make():
             sys.exit("Make Failed...")
         return
 
-    if not os.path.isfile(os.path.join(TF_TOP_GEN_PATH, "linux_x86_64_default/bin", TEST_PROJECT)) or (not args.skip_generation):
-        if os.system("cd " + TF_TOP +
-        " && make -f " + TF_TOOLS_MAKEFILE_PATH + " third_party_downloads"
-        " && make -f " + TF_TOOLS_MAKEFILE_PATH + " -j" + str(cpus) + " test_" + TEST_PROJECT):
-            sys.exit("Make Failed...")
+    if os.system("cd " + TF_TOP +
+    " && make -f " + TF_TOOLS_MAKEFILE_PATH + " third_party_downloads"):
+        sys.exit("Make Failed...")
 
-    # build_target("cortex-m0plus", __folder__, args, cpus, builddir, libdir)
+    build_target("cortex-m0plus", __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m7", __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m55", __folder__, args, cpus, builddir, libdir)
