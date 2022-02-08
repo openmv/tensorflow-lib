@@ -22,14 +22,14 @@ TF_TOOLS_PATH = os.path.join(TF_LITE_MICRO, "tools/make")
 TF_TOOLS_DOWNLOADS_PATH = os.path.join(TF_TOOLS_PATH, "downloads")
 TF_TOOLS_MAKEFILE_PATH = os.path.join(TF_TOOLS_PATH, "Makefile")
 
-MAKE_PROJECT = "person_detection_int8"
-TEST_PROJECT = "person_detection_test_int8"
+MODEL_NAME = "person_detection"
+MODEL_DATA = "tools/make/downloads/person_model_int8/person_detect_model_data.cc"
+MODEL_LABELS = "person\nno_person\n"
+MAKE_PROJECT = MODEL_NAME + "_int8"
+TEST_PROJECT = MODEL_NAME + "_test_int8"
 
 DEBUG_LOG_CALLBACK = "cortex_m_generic/debug_log_callback.h"
 CMSIS_GCC = "tools/make/downloads/cmsis/CMSIS/Core/Include/cmsis_gcc.h"
-PERSON_DETECT_MODEL_DATA_C = "tools/make/downloads/person_model_int8/person_detect_model_data.cc"
-PERSON_DETECT_MODEL_DATA_H = "tools/make/downloads/person_model_int8/person_detect_model_data.h"
-PERSON_DETECT_MODEL_LABELS = "person\nno_person\n"
 
 def patch_files(dir_path):
     for dname, dirs, files in os.walk(dir_path):
@@ -98,9 +98,6 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
     shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, CMSIS_GCC),
                     os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, CMSIS_GCC))
 
-    shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, PERSON_DETECT_MODEL_DATA_H),
-                    os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, PERSON_DETECT_MODEL_DATA_H))
-
     SRCS = [
         "SRCS :=",
         "libtf.cc",
@@ -157,7 +154,7 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
         data = re.sub(r"TARGET_TOOLCHAIN_ROOT := \S*", "TARGET_TOOLCHAIN_ROOT := " + gcc_embedded_folder + "/", data)
         data = data.replace("LIBRARY_OBJS := $(filter-out tensorflow/lite/micro/examples/%, $(OBJS))", "LIBRARY_OBJS := $(OBJS)")
         data = re.sub(r" tensorflow/lite/micro/examples/\S*", "", data)
-        data = re.sub(r" tensorflow/lite/micro/tools/make/downloads/person_model_int8/person_detect_model_data.cc", "", data)
+        data = re.sub(r" tensorflow/lite/micro/" + MODEL_DATA, "", data)
         data = re.sub(r" tensorflow/lite/schema/schema_generated.h", "", data)
         data = re.sub(r" tensorflow/lite/micro/kernels/ethosu.cc", "", data)
         data = re.sub(r" tensorflow/lite/micro/kernels/tflite_detection_postprocess.cc", "", data)
@@ -181,17 +178,13 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
         " && make -j " + str(cpus) + " lib"):
         sys.exit("Make Failed...")
 
-    if not os.path.exists((os.path.join(libdir, target))):
-        os.mkdir(os.path.join(libdir, target))
+    if os.path.exists((os.path.join(libdir, target))):
+        shutil.rmtree(os.path.join(libdir, target), ignore_errors = True)
+    
+    os.mkdir(os.path.join(libdir, target))
 
     shutil.copy(os.path.join(builddir, target, tflite_micro_project_folder, "libtensorflow-microlite.a"), os.path.join(libdir, target, "libtf.a"))
-    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(libdir, target))
-    shutil.copy(os.path.join(__folder__, TF_TOP, "LICENSE"), os.path.join(libdir, target))
-    convert_model(os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, PERSON_DETECT_MODEL_DATA_C), os.path.join(libdir, target, "builtin_model.tflite"))
-    with open(os.path.join(libdir, target, "builtin_labels.txt"), "w") as f: f.write(PERSON_DETECT_MODEL_LABELS)
-
-    with open(os.path.join(libdir, target, "README"), "w") as f:
-        f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n")
+    convert_model(os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, MODEL_DATA), os.path.join(libdir, "models/" + MODEL_NAME + ".tflite"))
 
 def build_target(target, __folder__, args, cpus, builddir, libdir):
 
@@ -319,6 +312,25 @@ def make():
     if os.system("cd " + TF_TOP +
     " && make -f " + TF_TOOLS_MAKEFILE_PATH + " third_party_downloads"):
         sys.exit("Make Failed...")
+
+    if os.path.exists((os.path.join(libdir))):
+        shutil.rmtree(os.path.join(libdir), ignore_errors = True)
+
+    os.mkdir(os.path.join(libdir))
+
+    if os.path.exists(os.path.join(libdir, "models")):
+        shutil.rmtree(os.path.join(libdir, "models"), ignore_errors = True)
+
+    os.mkdir(os.path.join(libdir, "models"))
+
+    with open(os.path.join(libdir, "models/" + MODEL_NAME + ".txt"), "w") as f:
+        f.write(MODEL_LABELS)
+
+    shutil.copy(os.path.join(__folder__, "libtf.h"), os.path.join(libdir))
+    shutil.copy(os.path.join(__folder__, TF_TOP, "LICENSE"), os.path.join(libdir))
+
+    with open(os.path.join(libdir, "README"), "w") as f:
+        f.write("You must link this library to your application with arm-none-eabi-gcc and have implemented putchar().\n")
 
     build_target("cortex-m0plus", __folder__, args, cpus, builddir, libdir)
     build_target("cortex-m4", __folder__, args, cpus, builddir, libdir)
