@@ -11,7 +11,7 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "libtf.h"
 
-#define LIBTF_MAX_OPS 16
+#define LIBTF_MAX_OPS 20
 
 extern "C" {
 
@@ -110,16 +110,16 @@ extern "C" {
         // resolver.AddLogistic();
         // resolver.AddMaximum();
         resolver.AddMaxPool2D();
-        // resolver.AddMean();
+        resolver.AddMean();
         // resolver.AddMinimum();
         // resolver.AddMul();
         // resolver.AddNeg();
         // resolver.AddNotEqual();
-        // resolver.AddPack();
+        resolver.AddPack();
         resolver.AddPad();
         resolver.AddPadV2();
         resolver.AddPrelu();
-        // resolver.AddQuantize();
+        resolver.AddQuantize();
         // resolver.AddReadVariable();
         // resolver.AddReduceMax();
         resolver.AddRelu();
@@ -145,7 +145,7 @@ extern "C" {
         // resolver.AddTanh();
         // resolver.AddTranspose();
         // resolver.AddTransposeConv();
-        // resolver.AddUnpack();
+        resolver.AddUnpack();
         // resolver.AddVarHandle();
     }
 
