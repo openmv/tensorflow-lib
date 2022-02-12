@@ -11,7 +11,7 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "libtf.h"
 
-#define LIBTF_MAX_OPS 20
+#define LIBTF_MAX_OPS 12
 
 extern "C" {
 
@@ -79,7 +79,7 @@ extern "C" {
         // resolver.AddBatchToSpaceNd();
         // resolver.AddCallOnce();
         // resolver.AddCeil();
-        resolver.AddConcatenation();
+        // resolver.AddConcatenation();
         resolver.AddConv2D();
         // resolver.AddCos();
         // resolver.AddCumSum();
@@ -115,15 +115,15 @@ extern "C" {
         // resolver.AddMul();
         // resolver.AddNeg();
         // resolver.AddNotEqual();
-        resolver.AddPack();
+        // resolver.AddPack();
         resolver.AddPad();
-        resolver.AddPadV2();
-        resolver.AddPrelu();
-        resolver.AddQuantize();
+        // resolver.AddPadV2();
+        // resolver.AddPrelu();
+        // resolver.AddQuantize();
         // resolver.AddReadVariable();
         // resolver.AddReduceMax();
-        resolver.AddRelu();
-        resolver.AddRelu6();
+        // resolver.AddRelu();
+        // resolver.AddRelu6();
         resolver.AddReshape();
         // resolver.AddResizeBilinear();
         // resolver.AddResizeNearestNeighbor();
@@ -145,7 +145,7 @@ extern "C" {
         // resolver.AddTanh();
         // resolver.AddTranspose();
         // resolver.AddTransposeConv();
-        resolver.AddUnpack();
+        // resolver.AddUnpack();
         // resolver.AddVarHandle();
     }
 
