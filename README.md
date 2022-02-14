@@ -1,5 +1,5 @@
 # tensorflow-lib #
-TensorFlow package for Cortex-M4 and Cortex-M7 CPUs with hardware floating point.
+TensorFlow package for Cortex-M0-Plus, Cortex-M4, Cortex-M7, and Cortex-M55 CPUs.
 
 Instructions for building
 =========================
@@ -30,4 +30,4 @@ Instructions for building
 Prebuilt Files
 ==============
 
-You can find libtf pre-built in the [libtf](libtf) folder for the cortex-m4 and cortex-m7.
+You can find libtf pre-built in the [libtf](libtf) folder.
