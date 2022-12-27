@@ -9,9 +9,10 @@
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+
 #include "libtf.h"
 
-#define LIBTF_MAX_OPS 12
+#define LIBTF_MAX_OPS 18
 
 extern "C" {
 
@@ -71,7 +72,7 @@ extern "C" {
     {
         // resolver.AddAbs();
         resolver.AddAdd();
-        // resolver.AddAddN();
+        resolver.AddAddN();
         // resolver.AddArgMax();
         // resolver.AddArgMin();
         // resolver.AddAssignVariable();
@@ -100,14 +101,14 @@ extern "C" {
         // resolver.AddHardSwish();
         // resolver.AddL2Normalization();
         // resolver.AddL2Pool2D();
-        // resolver.AddLeakyRelu();
+        resolver.AddLeakyRelu();
         // resolver.AddLess();
         // resolver.AddLessEqual();
         // resolver.AddLog();
         // resolver.AddLogicalAnd();
         // resolver.AddLogicalNot();
         // resolver.AddLogicalOr();
-        // resolver.AddLogistic();
+        resolver.AddLogistic();
         // resolver.AddMaximum();
         resolver.AddMaxPool2D();
         resolver.AddMean();
@@ -122,8 +123,8 @@ extern "C" {
         // resolver.AddQuantize();
         // resolver.AddReadVariable();
         // resolver.AddReduceMax();
-        // resolver.AddRelu();
-        // resolver.AddRelu6();
+        resolver.AddRelu();
+        resolver.AddRelu6();
         resolver.AddReshape();
         // resolver.AddResizeBilinear();
         // resolver.AddResizeNearestNeighbor();
@@ -142,7 +143,7 @@ extern "C" {
         // resolver.AddStridedSlice();
         resolver.AddSub();
         // resolver.AddSvdf();
-        // resolver.AddTanh();
+        resolver.AddTanh();
         // resolver.AddTranspose();
         // resolver.AddTransposeConv();
         // resolver.AddUnpack();
@@ -367,5 +368,85 @@ extern "C" {
         }
 
         return 0;
+    }
+
+    int libtf_regression_1Dinput_1Doutput(const unsigned char *model_data, uint8_t* tensor_arena, libtf_parameters_t* params, float* input_data, float* output_data)
+    {
+        RegisterDebugLogCallback(libtf_debug_log);
+
+        tflite::MicroErrorReporter micro_error_reporter;
+        tflite::ErrorReporter *error_reporter = &micro_error_reporter;
+
+        const tflite::Model* model = tflite::GetModel(model_data);
+        if (model->version() != TFLITE_SCHEMA_VERSION) {
+            error_reporter->Report("Model provided is schema version is not equal to supported version!");
+            return 1;
+        }
+
+        tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> resolver;
+        libtf_init_op_resolver(resolver);
+
+        size_t kTensorArenaSize = params->tensor_arena_size;
+
+        tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, 
+                                        kTensorArenaSize, &micro_error_reporter);
+        if (interpreter.AllocateTensors() != kTfLiteOk) {
+            error_reporter->Report("AllocateTensors() failed!");
+            return 1;
+        }
+
+        TfLiteTensor* input = interpreter.input(0);
+        float input_scale = input->params.scale;
+        int input_zero_point = input->params.zero_point;
+
+        if (!libtf_valid_dataype(input->type)) {
+                error_reporter->Report("Input model data type should be 8-bit quantized!");
+                return 1;
+        }
+
+        if (input->type == kTfLiteUInt8) {
+            for(size_t i=0; i < params->input_width; i++){
+                    input->data.uint8[i] = (uint8_t)(input_data[i] / input_scale + input_zero_point);
+            }
+        }
+        else if (input->type == kTfLiteInt8) {
+                for(size_t i=0; i < params->input_width; i++){
+                    input->data.int8[i] = (int8_t)(input_data[i] / input_scale + input_zero_point);
+            } 
+
+        }
+        else if (input->type == kTfLiteFloat32) {
+                for(size_t i=0; i < params->input_width; i++){
+                    input->data.f[i] = (float)(input_data[i]);
+            }
+        }
+
+        TfLiteStatus invoke_status = interpreter.Invoke();
+        if (invoke_status != kTfLiteOk) {
+            error_reporter->Report("Invoke() failed!");
+            return 1;
+        }
+
+        TfLiteTensor* output = interpreter.output(0);
+        float output_scale = output->params.scale;
+        int output_zero_point = output->params.zero_point;
+        if (input->type == kTfLiteUInt8) {
+                for(size_t i=0; i<params->output_channels; i++){
+                    output_data[i] = (float) ((output->data.uint8[i] - output_zero_point) * output_scale);
+            } 
+        }
+        else if (input->type == kTfLiteInt8) {
+                for(size_t i=0; i<params->output_channels; i++){
+                    output_data[i] = (float) ((output->data.int8[i] - output_zero_point) * output_scale);
+            } 
+        }
+        else if (input->type == kTfLiteFloat32) {
+                for(size_t i=0; i<params->output_channels; i++){
+                    output_data[i] = (float) (output->data.f[i]);
+            }
+        }
+
+        return 0;
+
     }
 }
