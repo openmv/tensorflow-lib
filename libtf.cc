@@ -9,10 +9,10 @@
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+
 #include "libtf.h"
 
-#define LIBTF_MAX_OPS 12
+#define LIBTF_MAX_OPS 18
 
 extern "C" {
 
@@ -72,7 +72,7 @@ extern "C" {
     {
         // resolver.AddAbs();
         resolver.AddAdd();
-        // resolver.AddAddN();
+        resolver.AddAddN();
         // resolver.AddArgMax();
         // resolver.AddArgMin();
         // resolver.AddAssignVariable();
@@ -101,14 +101,14 @@ extern "C" {
         // resolver.AddHardSwish();
         // resolver.AddL2Normalization();
         // resolver.AddL2Pool2D();
-        // resolver.AddLeakyRelu();
+        resolver.AddLeakyRelu();
         // resolver.AddLess();
         // resolver.AddLessEqual();
         // resolver.AddLog();
         // resolver.AddLogicalAnd();
         // resolver.AddLogicalNot();
         // resolver.AddLogicalOr();
-        // resolver.AddLogistic();
+        resolver.AddLogistic();
         // resolver.AddMaximum();
         resolver.AddMaxPool2D();
         resolver.AddMean();
@@ -123,8 +123,8 @@ extern "C" {
         // resolver.AddQuantize();
         // resolver.AddReadVariable();
         // resolver.AddReduceMax();
-        // resolver.AddRelu();
-        // resolver.AddRelu6();
+        resolver.AddRelu();
+        resolver.AddRelu6();
         resolver.AddReshape();
         // resolver.AddResizeBilinear();
         // resolver.AddResizeNearestNeighbor();
@@ -143,7 +143,7 @@ extern "C" {
         // resolver.AddStridedSlice();
         resolver.AddSub();
         // resolver.AddSvdf();
-        // resolver.AddTanh();
+        resolver.AddTanh();
         // resolver.AddTranspose();
         // resolver.AddTransposeConv();
         // resolver.AddUnpack();
@@ -383,7 +383,8 @@ extern "C" {
             return 1;
         }
 
-        tflite::AllOpsResolver resolver;
+        tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> resolver;
+        libtf_init_op_resolver(resolver);
 
         size_t kTensorArenaSize = params->tensor_arena_size;
 
@@ -421,6 +422,10 @@ extern "C" {
         }
 
         TfLiteStatus invoke_status = interpreter.Invoke();
+        if (invoke_status != kTfLiteOk) {
+            error_reporter->Report("Invoke() failed!");
+            return 1;
+        }
 
         TfLiteTensor* output = interpreter.output(0);
         float output_scale = output->params.scale;
