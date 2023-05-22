@@ -12,7 +12,7 @@
 
 #include "libtf.h"
 
-#define LIBTF_MAX_OPS 18
+#define LIBTF_MAX_OPS 34
 
 extern "C" {
 
