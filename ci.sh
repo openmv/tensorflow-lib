@@ -28,7 +28,7 @@ ci_update_submodules() {
 ########################################################################################
 # Build Targets.
 
-ci_build_target() {
+ci_build() {
     export PATH=${TOOLCHAIN_PATH}/bin:${PATH}
     python make.py
 }
