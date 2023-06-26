@@ -30,4 +30,4 @@ Instructions for building
 Prebuilt Files
 ==============
 
-You can find libtf pre-built in the [libtf](libtf) folder and a zip of the library under [releases](https://github.com/openmv/tensorflow-lib/releases).
+You can find libtf pre-built under [releases](https://github.com/openmv/tensorflow-lib/releases).
