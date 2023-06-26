@@ -98,6 +98,10 @@ def generate(target, target_arch, __folder__, args, cpus, builddir, libdir, c_fl
     shutil.copyfile(os.path.join(TF_TOP_MICRO_PATH, CMSIS_GCC),
                     os.path.join(builddir, target, tflite_micro_project_folder, TF_LITE_MICRO, CMSIS_GCC))
 
+    if os.system("cd " + os.path.join(builddir, target, tflite_micro_project_folder) +
+        " && git clone https://github.com/edgeimpulse/inferencing-sdk-cpp.git edge-impulse-sdk"):
+        sys.exit("Make Failed...")
+
     SRCS = [
         "SRCS :=",
         "libtf.cc",
