@@ -2,22 +2,8 @@ name: 'CI'
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
     branches:    
       - 'master'
-    paths:
-      - '.github/workflows/*.yml'
-      - '.github/workflows/*.json'
-      - '!**/README.md'
-
-  pull_request:
-    branches:    
-      - 'master'
-    paths:
-      - '.github/workflows/*.yml'
-      - '.github/workflows/*.json'
-      - '!**/README.md'
 
 jobs:
   build-firmware:
