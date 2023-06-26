@@ -91,7 +91,7 @@ jobs:
         path: libtf
 
     - name: '📦 Package firmware'
-      run: source tools/ci.sh && ci_package_development
+      run: source ci.sh && ci_package_development
 
     - name: '🧹 Delete old release'
       uses: dev-drprasad/delete-tag-and-release@v0.2.1
