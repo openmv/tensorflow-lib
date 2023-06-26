@@ -370,7 +370,7 @@ extern "C" {
         return 0;
     }
 
-    int libtf_regression_1Dinput_1Doutput(const unsigned char *model_data, uint8_t* tensor_arena, libtf_parameters_t* params, float* input_data, float* output_data)
+    int libtf_regression(const unsigned char *model_data, uint8_t* tensor_arena, libtf_parameters_t* params, float* input_data, float* output_data)
     {
         RegisterDebugLogCallback(libtf_debug_log);
 
@@ -405,19 +405,25 @@ extern "C" {
         }
 
         if (input->type == kTfLiteUInt8) {
-            for(size_t i=0; i < params->input_width; i++){
-                    input->data.uint8[i] = (uint8_t)(input_data[i] / input_scale + input_zero_point);
+            for(size_t i=0; i < params->input_height; i++){
+                for(size_t j=0; j < params->input_width; j++){
+                    input->data.uint8[i * (params->input_width) + j] = (uint8_t)(input_data[i * (params->input_width) + j] / input_scale + input_zero_point);
+                }
             }
         }
         else if (input->type == kTfLiteInt8) {
-                for(size_t i=0; i < params->input_width; i++){
-                    input->data.int8[i] = (int8_t)(input_data[i] / input_scale + input_zero_point);
-            } 
+            for(size_t i=0; i < params->input_height; i++){
+                for(size_t j=0; j < params->input_width; j++){
+                    input->data.int8[i * (params->input_width) + j] = (int8_t)(input_data[i * (params->input_width) + j] / input_scale + input_zero_point);
+                }
+            }
 
         }
-        else if (input->type == kTfLiteFloat32) {
-                for(size_t i=0; i < params->input_width; i++){
-                    input->data.f[i] = (float)(input_data[i]);
+        else if ((input->type == kTfLiteFloat32) || (input->type == kTfLiteFloat16)) {
+            for(size_t i=0; i < params->input_height; i++){
+                for(size_t j=0; j < params->input_width; j++){
+                    input->data.f[i * (params->input_width) + j] = (float)(input_data[i * (params->input_width) + j]);
+                }
             }
         }
 
