@@ -10,24 +10,19 @@ Instructions for building
     git clone --recursive https://github.com/openmv/tensorflow-lib.git
     ```
 
-2. Run these commands:
+2. Install GCC:
 
     ```
-    sudo apt-get remove gcc-arm-none-eabi
-    sudo apt-get autoremove
-    sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
-    sudo apt-get update
-    sudo apt-get install gcc-arm-embedded
-    sudo apt-get install libc6-i386
+    source ci.sh && ci_install_arm_gcc
     ```
 
 3. In `/`, do:
 
     ```
-    ./make.py
+    source ci.sh ci_build
     ```
 
 Prebuilt Files
 ==============
 
-You can find libtf pre-built under [releases](https://github.com/openmv/tensorflow-lib/releases). Alternatively, you may include this repo as a submodule and use [libtf](libtf) directly from the repo.
+You can find libtf pre-built under [releases](https://github.com/openmv/tensorflow-lib/releases). Alternatively, you may include this repo as a submodule and use [libtf](libtf) directly from the repo. This will allow you to easily update libtf without having to store the binaries directly in your repo.
