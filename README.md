@@ -7,27 +7,19 @@ Instructions for building
 
 1. Clone this repo recursively:
 
-    ```
-    git clone --recursive https://github.com/openmv/tensorflow-lib.git
-    ```
+       git clone --recursive https://github.com/openmv/tensorflow-lib.git
 
 2. If you already have `arm-none-eabi-gcc` installed and available on your path do:
 
-    ```
-    python make.py
-    ```
+       python make.py
 
 3. Otherwise, install GCC (only needs to be done once):
 
-    ```
-    source ci.sh && ci_install_arm_gcc
-    ```
+       source ci.sh && ci_install_arm_gcc
 
 4. And then do:
 
-    ```
-    source ci.sh ci_build
-    ```
+       source ci.sh ci_build
 
 You will need to use the `source ci.sh ci_build` to compile the library if you installed gcc via `source ci.sh && ci_install_arm_gcc` and did not add GCC to your path.
 
