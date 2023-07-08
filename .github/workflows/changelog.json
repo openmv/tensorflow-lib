@@ -1,0 +1,53 @@
+{
+    "categories": [
+     {
+       "title": "ignore",
+       "labels": ["github"]
+     },
+     {
+       "title": "## 🪄 LibTf",
+       "labels": ["libtf"]
+     },
+     {
+       "title": "## 🧬 EdgeImpulse",
+       "labels": ["edgeimpulse"]
+     },
+     {
+       "title": "## 📚 TensorFlow",
+       "labels": ["tensorflow"]
+     }
+    ],
+    "ignore_labels": [
+       "github"
+    ],
+    "label_extractor": [
+      {
+        "pattern": "^libtf",
+        "method": "match",
+        "on_property": "title"
+      },
+      {
+        "pattern": "^edgeimpulse",
+        "method": "match",
+        "on_property": "title"
+      },
+      {
+        "pattern": "^tensorflow",
+        "method": "match",
+        "on_property": "title"
+      }
+    ],
+    "transformers": [
+      {
+        "pattern": "^(.*)\/(.+:.*)",
+        "target": "- $2"
+      }
+    ],
+    "sort": "DESC",
+    "template": "${{CHANGELOG}}\n\n## 🪛 Misc Fixes:\n\n${{UNCATEGORIZED}}\n",
+    "pr_template": "- ${{TITLE}}",
+    "empty_template": "- no changes",
+    "max_tags_to_fetch": 100,
+    "max_pull_requests": 100,
+    "max_back_track_time_days": 100
+}
