@@ -12,7 +12,7 @@ on:
       - 'master'
 
 jobs:
-  build-firmware:
+  build:
     runs-on: ubuntu-20.04
     steps:
     - name: '⏳ Checkout repository'
@@ -46,20 +46,24 @@ jobs:
         if-no-files-found: error
 
   stable-release:
-    needs: build-firmware
-    runs-on: ubuntu-20.04
+    needs: build
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     steps:
-    - name: '⏳ Checkout repository'
-      uses: actions/checkout@v3
-      with:
-        submodules: false
-
     - name: '🤌 Download artifacts'
       uses: actions/download-artifact@v3
       with:
         name: libtf
         path: libtf
+
+    - name: "✏️ Generate release changelog"
+      id: changelog
+      uses: mikepenz/release-changelog-builder-action@v3
+      with:
+        toTag: ${{ github.sha }}
+        configuration: '.github/workflows/changelog.json'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: '📦 Package firmware'
       run: source ci.sh && ci_package_release ${{github.ref_name}}
@@ -79,17 +83,12 @@ jobs:
         failOnError: false
 
   development-release:
-    needs: build-firmware
-    runs-on: ubuntu-20.04
+    needs: build
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') == false
     permissions:
       contents: write
     steps:
-    - name: '⏳ Checkout repository'
-      uses: actions/checkout@v3
-      with:
-        submodules: false
-
     - name: '🤌 Download artifacts'
       uses: actions/download-artifact@v3
       with:
@@ -107,6 +106,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: "✏️ Generate release changelog"
+      id: changelog
+      uses: mikepenz/release-changelog-builder-action@v3
+      with:
+        toTag: ${{ github.sha }}
+        configuration: '.github/workflows/changelog.json'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: '🔥 Create development release'
       uses: softprops/action-gh-release@v1
       with:
@@ -115,6 +123,7 @@ jobs:
         tag_name: development
         body: |
             **⚠️ This is a development release, and it may be unstable.**
+            ${{steps.changelog.outputs.changelog}}
         files: libtf.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
