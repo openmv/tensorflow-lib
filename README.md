@@ -30,4 +30,4 @@ Instructions for building
 Prebuilt Files
 ==============
 
-You can find libtf pre-built under [releases](https://github.com/openmv/tensorflow-lib/releases).
+You can find libtf pre-built under [releases](https://github.com/openmv/tensorflow-lib/releases). Alternatively, you may include this repo as a submodule and use [libtf](libtf) directly from the repo.
