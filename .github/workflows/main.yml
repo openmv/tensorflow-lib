@@ -73,6 +73,7 @@ jobs:
       with:
         draft: true
         files: libtf.zip
+        body: ${{steps.changelog.outputs.changelog}}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -89,6 +90,11 @@ jobs:
     permissions:
       contents: write
     steps:
+    - name: '⏳ Checkout repository'
+      uses: actions/checkout@v3
+      with:
+        submodules: false
+    
     - name: '🤌 Download artifacts'
       uses: actions/download-artifact@v3
       with:
