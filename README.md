@@ -9,7 +9,7 @@
 
 # Tensorflow Library - A Portable C Tensorflow Library
 
-Full featured Tensorflow package for Cortex-M0-Plus, Cortex-M4, Cortex-M7, and Cortex-M55 CPUs with **no dependencies**!
+Full featured Tensorflow package for Cortex-M0-Plus, Cortex-M4, Cortex-M7, and Cortex-M55 CPUs with **no external dependencies**!
 
   - [Instructions for building](#instructions-for-building)
   - [Prebuilt Files](#prebuilt-files)
