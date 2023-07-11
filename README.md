@@ -1,4 +1,4 @@
-[![Firmware Build 🔥](https://github.com/openmv/tensorflow-lib/actions/workflows/main.yml/badge.svg)](https://github.com/openmv/tensorflow-lib/actions/workflows/main.yml)
+[![GitHub Build](https://github.com/openmv/tensorflow-lib/actions/workflows/main.yml/badge.svg)](https://github.com/openmv/tensorflow-lib/actions/workflows/main.yml)
 [![GitHub license](https://img.shields.io/github/license/openmv/tensorflow-lib?label=license%20%E2%9A%96)](https://github.com/openmv/tensorflow-lib/blob/master/LICENSE)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/openmv/tensorflow-lib?sort=semver)
 [![GitHub forks](https://img.shields.io/github/forks/openmv/tensorflow-lib?color=green)](https://github.com/openmv/tensorflow-lib/network)
