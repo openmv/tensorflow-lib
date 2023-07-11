@@ -7,7 +7,7 @@
 
 <img  width="480" src="https://raw.githubusercontent.com/openmv/openmv-media/master/logos/openmv-logo/logo.png">
 
-# Tensorflow Library - A Portable C Tensorflow Library
+# A Portable C Tensorflow Library
 
 Full featured Tensorflow package for Cortex-M0-Plus, Cortex-M4, Cortex-M7, and Cortex-M55 CPUs with **no external dependencies**!
 
