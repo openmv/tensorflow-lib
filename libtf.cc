@@ -1,5 +1,5 @@
 /* This file is part of the OpenMV project.
- * Copyright (c) 2013-2023 Ibrahim Abdelkader <iabdalkader@openmv.io> & Kwabena W. Agyeman <kwagyeman@openmv.io>
+ * Copyright (c) 2013-2024 Ibrahim Abdelkader <iabdalkader@openmv.io> & Kwabena W. Agyeman <kwagyeman@openmv.io>
  * This work is licensed under the MIT license, see the file LICENSE for details.
  */
 
@@ -15,14 +15,12 @@
 #define LIBTF_MAX_OPS 72
 
 extern "C" {
-
     // These are set by openmv py_tf.c code to redirect printing to an error message buffer...
     char *py_tf_putchar_buffer = NULL;
     size_t py_tf_putchar_buffer_index = 0;
     size_t py_tf_putchar_buffer_len = 0;
 
-    static void libtf_debug_log(const char *s)
-    {
+    static void libtf_debug_log(const char *s) {
         for (size_t i = 0, j = strlen(s); i < j; i++) {
             if (py_tf_putchar_buffer_len) {
                 py_tf_putchar_buffer[py_tf_putchar_buffer_index++] = s[i];
@@ -33,12 +31,10 @@ extern "C" {
         }
     }
 
-    static int libtf_align_tensor_arena(unsigned char **tensor_arena, size_t *tensor_arena_size)
-    {
+    static int libtf_align_tensor_arena(unsigned char **tensor_arena, size_t *tensor_arena_size) {
         size_t alignment = ((size_t) (*tensor_arena)) % LIBTF_TENSOR_ARENA_ALIGNMENT;
 
         if (alignment) {
-
             size_t fix = LIBTF_TENSOR_ARENA_ALIGNMENT - alignment;
 
             if ((*tensor_arena_size) < fix) {
@@ -52,13 +48,11 @@ extern "C" {
         return 0;
     }
 
-    static bool libtf_valid_dataype(TfLiteType type)
-    {
+    static bool libtf_valid_dataype(TfLiteType type) {
         return (type == kTfLiteUInt8) || (type == kTfLiteInt8) || (type == kTfLiteFloat32);
     }
 
-    static libtf_datatype_t libtf_map_datatype(TfLiteType type)
-    {
+    static libtf_datatype_t libtf_map_datatype(TfLiteType type) {
         if (type == kTfLiteUInt8) {
             return LIBTF_DATATYPE_UINT8;
         } else if (type == kTfLiteInt8) {
@@ -68,8 +62,7 @@ extern "C" {
         }
     }
 
-    static void libtf_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver)
-    {
+    static void libtf_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
         resolver.AddAbs();
         resolver.AddAdd();
         resolver.AddAddN();
@@ -156,8 +149,7 @@ extern "C" {
 
     int libtf_get_parameters(const unsigned char *model_data,
                              unsigned char *tensor_arena, size_t tensor_arena_size,
-                             libtf_parameters_t *params)
-    {
+                             libtf_parameters_t *params) {
         RegisterDebugLogCallback(libtf_debug_log);
 
         tflite::MicroErrorReporter micro_error_reporter;
@@ -301,8 +293,7 @@ extern "C" {
                      libtf_input_data_callback_t input_callback,
                      void *input_callback_data,
                      libtf_output_data_callback_t output_callback,
-                     void *output_callback_data)
-    {
+                     void *output_callback_data) {
         RegisterDebugLogCallback(libtf_debug_log);
 
         tflite::MicroErrorReporter micro_error_reporter;
@@ -344,8 +335,7 @@ extern "C" {
         return 0;
     }
 
-    int libtf_initialize_micro_features()
-    {
+    int libtf_initialize_micro_features() {
         RegisterDebugLogCallback(libtf_debug_log);
 
         tflite::MicroErrorReporter micro_error_reporter;
@@ -359,8 +349,7 @@ extern "C" {
     }
 
     int libtf_generate_micro_features(const int16_t *input, int input_size,
-            int output_size, int8_t *output, size_t *num_samples_read)
-    {
+            int output_size, int8_t *output, size_t *num_samples_read) {
         RegisterDebugLogCallback(libtf_debug_log);
 
         tflite::MicroErrorReporter micro_error_reporter;
@@ -369,91 +358,6 @@ extern "C" {
         if (GenerateMicroFeatures(error_reporter, input, input_size,
                     output_size, output, num_samples_read) != kTfLiteOk) {
             return 1;
-        }
-
-        return 0;
-    }
-
-    int libtf_regression(const unsigned char *model_data, uint8_t* tensor_arena, libtf_parameters_t* params, float* input_data, float* output_data)
-    {
-        RegisterDebugLogCallback(libtf_debug_log);
-
-        tflite::MicroErrorReporter micro_error_reporter;
-        tflite::ErrorReporter *error_reporter = &micro_error_reporter;
-
-        const tflite::Model* model = tflite::GetModel(model_data);
-        if (model->version() != TFLITE_SCHEMA_VERSION) {
-            error_reporter->Report("Model provided is schema version is not equal to supported version!");
-            return 1;
-        }
-
-        tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> resolver;
-        libtf_init_op_resolver(resolver);
-
-        size_t kTensorArenaSize = params->tensor_arena_size;
-
-        tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, 
-                                        kTensorArenaSize, &micro_error_reporter);
-        if (interpreter.AllocateTensors() != kTfLiteOk) {
-            error_reporter->Report("AllocateTensors() failed!");
-            return 1;
-        }
-
-        TfLiteTensor* input = interpreter.input(0);
-        float input_scale = input->params.scale;
-        int input_zero_point = input->params.zero_point;
-
-        if (!libtf_valid_dataype(input->type)) {
-                error_reporter->Report("Input model data type should be 8-bit quantized!");
-                return 1;
-        }
-
-        if (input->type == kTfLiteUInt8) {
-            for(size_t i=0; i < params->input_height; i++){
-                for(size_t j=0; j < params->input_width; j++){
-                    input->data.uint8[i * (params->input_width) + j] = (uint8_t)(input_data[i * (params->input_width) + j] / input_scale + input_zero_point);
-                }
-            }
-        }
-        else if (input->type == kTfLiteInt8) {
-            for(size_t i=0; i < params->input_height; i++){
-                for(size_t j=0; j < params->input_width; j++){
-                    input->data.int8[i * (params->input_width) + j] = (int8_t)(input_data[i * (params->input_width) + j] / input_scale + input_zero_point);
-                }
-            }
-
-        }
-        else if ((input->type == kTfLiteFloat32) || (input->type == kTfLiteFloat16)) {
-            for(size_t i=0; i < params->input_height; i++){
-                for(size_t j=0; j < params->input_width; j++){
-                    input->data.f[i * (params->input_width) + j] = (float)(input_data[i * (params->input_width) + j]);
-                }
-            }
-        }
-
-        TfLiteStatus invoke_status = interpreter.Invoke();
-        if (invoke_status != kTfLiteOk) {
-            error_reporter->Report("Invoke() failed!");
-            return 1;
-        }
-
-        TfLiteTensor* output = interpreter.output(0);
-        float output_scale = output->params.scale;
-        int output_zero_point = output->params.zero_point;
-        if (input->type == kTfLiteUInt8) {
-                for(size_t i=0; i<params->output_channels; i++){
-                    output_data[i] = (float) ((output->data.uint8[i] - output_zero_point) * output_scale);
-            } 
-        }
-        else if (input->type == kTfLiteInt8) {
-                for(size_t i=0; i<params->output_channels; i++){
-                    output_data[i] = (float) ((output->data.int8[i] - output_zero_point) * output_scale);
-            } 
-        }
-        else if (input->type == kTfLiteFloat32) {
-                for(size_t i=0; i<params->output_channels; i++){
-                    output_data[i] = (float) (output->data.f[i]);
-            }
         }
 
         return 0;

@@ -263,6 +263,7 @@ def build_target(target, __folder__, args, cpus, builddir, libdir):
     elif target == "cortex-m55":
 
         cortex_m55_compile_flags = " -DARM_MATH_CM55" \
+                                   " -mfpu=fpv5-d16" \
                                    " -mcpu=cortex-m55" \
                                    " -mfloat-abi=hard" \
                                    " -mtune=cortex-m55"

@@ -2,9 +2,8 @@
 
 ########################################################################################
 # Install ARM GCC.
-TOOLCHAIN="gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2"
 TOOLCHAIN_PATH=${HOME}/cache/gcc
-TOOLCHAIN_URL="https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/10-2020q4/${TOOLCHAIN}"
+TOOLCHAIN_URL="https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz"
 
 ci_install_arm_gcc_apt() {
     sudo apt-get install gcc-arm-none-eabi libnewlib-arm-none-eabi

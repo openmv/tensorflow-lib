@@ -1,5 +1,5 @@
 /* This file is part of the OpenMV project.
- * Copyright (c) 2013-2023 Ibrahim Abdelkader <iabdalkader@openmv.io> & Kwabena W. Agyeman <kwagyeman@openmv.io>
+ * Copyright (c) 2013-2024 Ibrahim Abdelkader <iabdalkader@openmv.io> & Kwabena W. Agyeman <kwagyeman@openmv.io>
  * This work is licensed under the MIT license, see the file LICENSE for details.
  */
 
@@ -71,9 +71,6 @@ int libtf_generate_micro_features(const int16_t *input, // Audio samples
                                   int output_size, // Slice data size
                                   int8_t *output, // Slice data
                                   size_t *num_samples_read); // Number of samples used
-
-// runs regression on 2D/ 1D input(provided as array) and return 1D output
-int libtf_regression(const unsigned char *model_data, uint8_t* tensor_arena, libtf_parameters_t* params, float* input_data, float* output_data);
 
 #ifdef __cplusplus
 }
