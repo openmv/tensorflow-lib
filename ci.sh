@@ -12,7 +12,7 @@ ci_install_arm_gcc_apt() {
 
 ci_install_arm_gcc() {
     mkdir -p ${TOOLCHAIN_PATH}
-    wget --no-check-certificate -O - ${TOOLCHAIN_URL} | tar --strip-components=1 -jx -C ${TOOLCHAIN_PATH}
+    wget --no-check-certificate -O - ${TOOLCHAIN_URL} | tar --strip-components=1 -Jx -C ${TOOLCHAIN_PATH}
     export PATH=${TOOLCHAIN_PATH}/bin:${PATH}
     arm-none-eabi-gcc --version
 }
