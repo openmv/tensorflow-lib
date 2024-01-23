@@ -11,8 +11,7 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 
 #include "libtf.h"
-
-#define LIBTF_MAX_OPS 72
+#define LIBTF_MAX_OPS 80
 
 extern "C" {
     // These are set by openmv py_tf.c code to redirect printing to an error message buffer...
@@ -62,16 +61,108 @@ extern "C" {
         }
     }
 
-    static void libtf_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
+    typedef void (*libtf_resolver_init_t) (tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &);
+
+    static void libtf_reduced_ops_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
+        // resolver.AddAbs();
+        resolver.AddAdd();
+        resolver.AddAddN();
+        // resolver.AddArgMax();
+        // resolver.AddArgMin();
+        resolver.AddAveragePool2D();
+        // resolver.AddBatchMatMul(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddBatchToSpaceNd();
+        // resolver.AddCast();
+        // resolver.AddCeil();
+        // resolver.AddCircularBuffer(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddComplexAbs();
+        // resolver.AddConcatenation();
+        resolver.AddConv2D();
+        // resolver.AddCos();
+        resolver.AddDepthwiseConv2D();
+        // resolver.AddDequantize();
+        // resolver.AddDetectionPostprocess();
+        // resolver.AddDiv();
+        // resolver.AddElu();
+        // resolver.AddEqual();
+        // resolver.AddEthosU();
+        // resolver.AddExp();
+        // resolver.AddExpandDims();
+        // resolver.AddFloor();
+        resolver.AddFullyConnected();
+        // resolver.AddGather();
+        // resolver.AddGreater();
+        // resolver.AddGreaterEqual();
+        // resolver.AddHardSwish();
+        // resolver.AddImag();
+        // resolver.AddL2Normalization();
+        // resolver.AddL2Pool2D();
+        resolver.AddLeakyRelu();
+        // resolver.AddLess();
+        // resolver.AddLessEqual();
+        // resolver.AddLog();
+        // resolver.AddLogicalAnd();
+        // resolver.AddLogicalNot();
+        // resolver.AddLogicalOr();
+        resolver.AddLogistic();
+        resolver.AddMaxPool2D();
+        // resolver.AddMaximum();
+        resolver.AddMean();
+        // resolver.AddMinimum();
+        // resolver.AddMul();
+        // resolver.AddNeg();
+        // resolver.AddNotEqual();
+        // resolver.AddPack();
+        resolver.AddPad();
+        // resolver.AddPadV2();
+        // resolver.AddPrelu();
+        // resolver.AddQuantize();
+        // resolver.AddReal();
+        // resolver.AddReduceMax();
+        // resolver.AddReduceMin();
+        resolver.AddRelu();
+        resolver.AddRelu6();
+        resolver.AddReshape();
+        // resolver.AddResizeNearestNeighbor();
+        // resolver.AddRfft2D(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddRound();
+        // resolver.AddRsqrt();
+        // resolver.AddSelect();
+        // resolver.AddSelectV2();
+        resolver.AddShape();
+        // resolver.AddSin();
+        // resolver.AddSlice(); - Doesn't compile in OpenMV Cam firmware
+        resolver.AddSoftmax();
+        // resolver.AddSpaceToBatchNd();
+        // resolver.AddSplit();
+        // resolver.AddSplitV();
+        // resolver.AddSqrt();
+        // resolver.AddSquare();
+        // resolver.AddSquaredDifference(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddSqueeze();
+        // resolver.AddStridedSlice();
+        resolver.AddSub();
+        // resolver.AddSum();
+        // resolver.AddSvdf();
+        resolver.AddTanh();
+        // resolver.AddTranspose(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddTransposeConv();
+        // resolver.AddUnpack();
+        // resolver.AddZerosLike();
+    }
+
+    static void libtf_all_ops_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
         resolver.AddAbs();
         resolver.AddAdd();
         resolver.AddAddN();
         resolver.AddArgMax();
         resolver.AddArgMin();
         resolver.AddAveragePool2D();
-        // resolver.AddBatchMatMul();
+        // resolver.AddBatchMatMul(); - Doesn't compile in OpenMV Cam firmware
         resolver.AddBatchToSpaceNd();
+        resolver.AddCast();
         resolver.AddCeil();
+        // resolver.AddCircularBuffer(); - Doesn't compile in OpenMV Cam firmware
         resolver.AddComplexAbs();
         resolver.AddConcatenation();
         resolver.AddConv2D();
@@ -121,35 +212,37 @@ extern "C" {
         resolver.AddRelu6();
         resolver.AddReshape();
         resolver.AddResizeNearestNeighbor();
-        // resolver.AddRfft2D();
+        // resolver.AddRfft2D(); - Doesn't compile in OpenMV Cam firmware
         resolver.AddRound();
         resolver.AddRsqrt();
         // resolver.AddSelect();
         // resolver.AddSelectV2();
         resolver.AddShape();
         resolver.AddSin();
-        // resolver.AddSlice();
+        // resolver.AddSlice(); - Doesn't compile in OpenMV Cam firmware
         resolver.AddSoftmax();
         resolver.AddSpaceToBatchNd();
         resolver.AddSplit();
         resolver.AddSplitV();
         resolver.AddSqrt();
         resolver.AddSquare();
-        // resolver.AddSquaredDifference();
+        // resolver.AddSquaredDifference(); - Doesn't compile in OpenMV Cam firmware
         resolver.AddSqueeze();
         resolver.AddStridedSlice();
         resolver.AddSub();
         resolver.AddSum();
         resolver.AddSvdf();
         resolver.AddTanh();
-        // resolver.AddTranspose();
+        // resolver.AddTranspose(); - Doesn't compile in OpenMV Cam firmware
         resolver.AddTransposeConv();
         resolver.AddUnpack();
+        resolver.AddZerosLike();
     }
 
-    int libtf_get_parameters(const unsigned char *model_data,
-                             unsigned char *tensor_arena, size_t tensor_arena_size,
-                             libtf_parameters_t *params) {
+    static int libtf_get_parameters(const unsigned char *model_data,
+                                    unsigned char *tensor_arena, size_t tensor_arena_size,
+                                    libtf_parameters_t *params,
+                                    libtf_resolver_init_t libtf_resolver_init) {
         RegisterDebugLogCallback(libtf_debug_log);
 
         tflite::MicroErrorReporter micro_error_reporter;
@@ -168,7 +261,7 @@ extern "C" {
         }
 
         tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> resolver;
-        libtf_init_op_resolver(resolver);
+        libtf_resolver_init(resolver);
 
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
@@ -287,13 +380,36 @@ extern "C" {
         return 0;
     }
 
-    int libtf_invoke(const unsigned char *model_data,
-                     unsigned char *tensor_arena,
-                     libtf_parameters_t *params,
-                     libtf_input_data_callback_t input_callback,
-                     void *input_callback_data,
-                     libtf_output_data_callback_t output_callback,
-                     void *output_callback_data) {
+    int libtf_reduced_ops_get_parameters(const unsigned char *model_data,
+                                         unsigned char *tensor_arena,
+                                         size_t tensor_arena_size,
+                                         libtf_parameters_t *params) {
+        return libtf_get_parameters(model_data,
+                                    tensor_arena,
+                                    tensor_arena_size,
+                                    params,
+                                    libtf_reduced_ops_init_op_resolver);
+    }
+
+    int libtf_all_ops_get_parameters(const unsigned char *model_data,
+                                     unsigned char *tensor_arena,
+                                     size_t tensor_arena_size,
+                                     libtf_parameters_t *params) {
+        return libtf_get_parameters(model_data,
+                                    tensor_arena,
+                                    tensor_arena_size,
+                                    params,
+                                    libtf_all_ops_init_op_resolver);
+    }
+
+    static int libtf_invoke(const unsigned char *model_data,
+                            unsigned char *tensor_arena,
+                            libtf_parameters_t *params,
+                            libtf_input_data_callback_t input_callback,
+                            void *input_callback_data,
+                            libtf_output_data_callback_t output_callback,
+                            void *output_callback_data,
+                            libtf_resolver_init_t libtf_resolver_init) {
         RegisterDebugLogCallback(libtf_debug_log);
 
         tflite::MicroErrorReporter micro_error_reporter;
@@ -314,7 +430,7 @@ extern "C" {
         }
 
         tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> resolver;
-        libtf_init_op_resolver(resolver);
+        libtf_resolver_init(resolver);
 
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
 
@@ -333,6 +449,40 @@ extern "C" {
         output_callback(output_callback_data, interpreter.output(0)->data.data, params);
 
         return 0;
+    }
+
+    int libtf_reduced_ops_invoke(const unsigned char *model_data,
+                                 unsigned char *tensor_arena,
+                                 libtf_parameters_t *params,
+                                 libtf_input_data_callback_t input_callback,
+                                 void *input_callback_data,
+                                 libtf_output_data_callback_t output_callback,
+                                 void *output_callback_data) {
+        return libtf_invoke(model_data,
+                            tensor_arena,
+                            params,
+                            input_callback,
+                            input_callback_data,
+                            output_callback,
+                            output_callback_data,
+                            libtf_reduced_ops_init_op_resolver);
+    }
+
+    int libtf_all_ops_invoke(const unsigned char *model_data,
+                             unsigned char *tensor_arena,
+                             libtf_parameters_t *params,
+                             libtf_input_data_callback_t input_callback,
+                             void *input_callback_data,
+                             libtf_output_data_callback_t output_callback,
+                             void *output_callback_data) {
+        return libtf_invoke(model_data,
+                            tensor_arena,
+                            params,
+                            input_callback,
+                            input_callback_data,
+                            output_callback,
+                            output_callback_data,
+                            libtf_all_ops_init_op_resolver);
     }
 
     int libtf_initialize_micro_features() {
