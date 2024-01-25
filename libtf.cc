@@ -64,7 +64,7 @@ extern "C" {
     typedef void (*libtf_resolver_init_t) (tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &);
 
     static void libtf_reduced_ops_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
-        // resolver.AddAbs();
+        resolver.AddAbs();
         resolver.AddAdd();
         resolver.AddAddN();
         // resolver.AddArgMax();
@@ -80,7 +80,7 @@ extern "C" {
         resolver.AddConv2D();
         // resolver.AddCos();
         resolver.AddDepthwiseConv2D();
-        // resolver.AddDequantize();
+        resolver.AddDequantize();
         // resolver.AddDetectionPostprocess();
         // resolver.AddDiv();
         // resolver.AddElu();
@@ -88,7 +88,7 @@ extern "C" {
         // resolver.AddEthosU();
         // resolver.AddExp();
         // resolver.AddExpandDims();
-        // resolver.AddFloor();
+        resolver.AddFloor();
         resolver.AddFullyConnected();
         // resolver.AddGather();
         // resolver.AddGreater();
@@ -98,7 +98,7 @@ extern "C" {
         // resolver.AddL2Normalization();
         // resolver.AddL2Pool2D();
         resolver.AddLeakyRelu();
-        // resolver.AddLess();
+        resolver.AddLess();
         // resolver.AddLessEqual();
         // resolver.AddLog();
         // resolver.AddLogicalAnd();
@@ -106,17 +106,17 @@ extern "C" {
         // resolver.AddLogicalOr();
         resolver.AddLogistic();
         resolver.AddMaxPool2D();
-        // resolver.AddMaximum();
+        resolver.AddMaximum();
         resolver.AddMean();
-        // resolver.AddMinimum();
-        // resolver.AddMul();
+        resolver.AddMinimum();
+        resolver.AddMul();
         // resolver.AddNeg();
-        // resolver.AddNotEqual();
-        // resolver.AddPack();
+        resolver.AddNotEqual();
+        resolver.AddPack();
         resolver.AddPad();
         // resolver.AddPadV2();
         // resolver.AddPrelu();
-        // resolver.AddQuantize();
+        resolver.AddQuantize();
         // resolver.AddReal();
         // resolver.AddReduceMax();
         // resolver.AddReduceMin();
@@ -136,7 +136,7 @@ extern "C" {
         // resolver.AddSpaceToBatchNd();
         // resolver.AddSplit();
         // resolver.AddSplitV();
-        // resolver.AddSqrt();
+        resolver.AddSqrt();
         // resolver.AddSquare();
         // resolver.AddSquaredDifference(); - Doesn't compile in OpenMV Cam firmware
         // resolver.AddSqueeze();
@@ -147,7 +147,7 @@ extern "C" {
         resolver.AddTanh();
         // resolver.AddTranspose(); - Doesn't compile in OpenMV Cam firmware
         // resolver.AddTransposeConv();
-        // resolver.AddUnpack();
+        resolver.AddUnpack();
         // resolver.AddZerosLike();
     }
 
