@@ -63,14 +63,14 @@ extern "C" {
 
     typedef void (*libtf_resolver_init_t) (tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &);
 
-    static void libtf_reduced_ops_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
+    static void libtf_minimum_ops_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
         resolver.AddAbs();
         resolver.AddAdd();
         resolver.AddAddN();
         // resolver.AddArgMax();
         // resolver.AddArgMin();
         resolver.AddAveragePool2D();
-        // resolver.AddBatchMatMul(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddBatchMatMul();
         // resolver.AddBatchToSpaceNd();
         // resolver.AddCast();
         // resolver.AddCeil();
@@ -81,16 +81,16 @@ extern "C" {
         // resolver.AddCos();
         resolver.AddDepthwiseConv2D();
         resolver.AddDequantize();
-        // resolver.AddDetectionPostprocess();
+        // resolver.AddDetectionPostprocess(); - Disabled in library.
         // resolver.AddDiv();
         // resolver.AddElu();
         // resolver.AddEqual();
-        // resolver.AddEthosU();
+        // resolver.AddEthosU(); - Future.
         // resolver.AddExp();
         // resolver.AddExpandDims();
         resolver.AddFloor();
         resolver.AddFullyConnected();
-        // resolver.AddGather();
+        // resolver.AddGather(); - Disabled because of TF_LITE_STATIC_MEMORY
         // resolver.AddGreater();
         // resolver.AddGreaterEqual();
         // resolver.AddHardSwish();
@@ -127,8 +127,8 @@ extern "C" {
         // resolver.AddRfft2D(); - Doesn't compile in OpenMV Cam firmware
         // resolver.AddRound();
         // resolver.AddRsqrt();
-        // resolver.AddSelect();
-        // resolver.AddSelectV2();
+        // resolver.AddSelect(); - Disabled because of TF_LITE_STATIC_MEMORY
+        // resolver.AddSelectV2(); - Disabled because of TF_LITE_STATIC_MEMORY
         resolver.AddShape();
         // resolver.AddSin();
         // resolver.AddSlice(); - Doesn't compile in OpenMV Cam firmware
@@ -138,15 +138,103 @@ extern "C" {
         // resolver.AddSplitV();
         resolver.AddSqrt();
         // resolver.AddSquare();
-        // resolver.AddSquaredDifference(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddSquaredDifference();
         // resolver.AddSqueeze();
         // resolver.AddStridedSlice();
         resolver.AddSub();
         // resolver.AddSum();
         // resolver.AddSvdf();
         resolver.AddTanh();
-        // resolver.AddTranspose(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddTranspose();
         // resolver.AddTransposeConv();
+        resolver.AddUnpack();
+        // resolver.AddZerosLike();
+    }
+
+    static void libtf_reduced_ops_init_op_resolver(tflite::MicroMutableOpResolver<LIBTF_MAX_OPS> &resolver) {
+        resolver.AddAbs();
+        resolver.AddAdd();
+        resolver.AddAddN();
+        // resolver.AddArgMax();
+        resolver.AddArgMin();
+        resolver.AddAveragePool2D();
+        // resolver.AddBatchMatMul();
+        // resolver.AddBatchToSpaceNd();
+        // resolver.AddCast();
+        // resolver.AddCeil();
+        // resolver.AddCircularBuffer(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddComplexAbs();
+        resolver.AddConcatenation();
+        resolver.AddConv2D();
+        // resolver.AddCos();
+        resolver.AddDepthwiseConv2D();
+        resolver.AddDequantize();
+        // resolver.AddDetectionPostprocess(); - Disabled in library.
+        // resolver.AddDiv();
+        // resolver.AddElu();
+        // resolver.AddEqual();
+        // resolver.AddEthosU(); - Future.
+        resolver.AddExp();
+        // resolver.AddExpandDims();
+        resolver.AddFloor();
+        resolver.AddFullyConnected();
+        // resolver.AddGather(); - Disabled because of TF_LITE_STATIC_MEMORY
+        // resolver.AddGreater();
+        // resolver.AddGreaterEqual();
+        // resolver.AddHardSwish();
+        // resolver.AddImag();
+        // resolver.AddL2Normalization();
+        // resolver.AddL2Pool2D();
+        resolver.AddLeakyRelu();
+        resolver.AddLess();
+        // resolver.AddLessEqual();
+        // resolver.AddLog();
+        // resolver.AddLogicalAnd();
+        // resolver.AddLogicalNot();
+        // resolver.AddLogicalOr();
+        resolver.AddLogistic();
+        resolver.AddMaxPool2D();
+        resolver.AddMaximum();
+        resolver.AddMean();
+        resolver.AddMinimum();
+        resolver.AddMul();
+        // resolver.AddNeg();
+        resolver.AddNotEqual();
+        resolver.AddPack();
+        resolver.AddPad();
+        resolver.AddPadV2();
+        // resolver.AddPrelu();
+        resolver.AddQuantize();
+        // resolver.AddReal();
+        // resolver.AddReduceMax();
+        // resolver.AddReduceMin();
+        resolver.AddRelu();
+        resolver.AddRelu6();
+        resolver.AddReshape();
+        resolver.AddResizeNearestNeighbor();
+        // resolver.AddRfft2D(); - Doesn't compile in OpenMV Cam firmware
+        // resolver.AddRound();
+        // resolver.AddRsqrt();
+        // resolver.AddSelect(); - Disabled because of TF_LITE_STATIC_MEMORY
+        // resolver.AddSelectV2(); - Disabled because of TF_LITE_STATIC_MEMORY
+        resolver.AddShape();
+        // resolver.AddSin();
+        // resolver.AddSlice(); - Doesn't compile in OpenMV Cam firmware
+        resolver.AddSoftmax();
+        // resolver.AddSpaceToBatchNd();
+        // resolver.AddSplit();
+        // resolver.AddSplitV();
+        resolver.AddSqrt();
+        // resolver.AddSquare();
+        // resolver.AddSquaredDifference();
+        // resolver.AddSqueeze();
+        resolver.AddStridedSlice();
+        resolver.AddSub();
+        // resolver.AddSum();
+        // resolver.AddSvdf();
+        resolver.AddTanh();
+        resolver.AddTranspose();
+        resolver.AddTransposeConv();
         resolver.AddUnpack();
         // resolver.AddZerosLike();
     }
@@ -158,7 +246,7 @@ extern "C" {
         resolver.AddArgMax();
         resolver.AddArgMin();
         resolver.AddAveragePool2D();
-        // resolver.AddBatchMatMul(); - Doesn't compile in OpenMV Cam firmware
+        resolver.AddBatchMatMul();
         resolver.AddBatchToSpaceNd();
         resolver.AddCast();
         resolver.AddCeil();
@@ -169,16 +257,16 @@ extern "C" {
         resolver.AddCos();
         resolver.AddDepthwiseConv2D();
         resolver.AddDequantize();
-        // resolver.AddDetectionPostprocess();
+        // resolver.AddDetectionPostprocess(); - Disabled in library.
         resolver.AddDiv();
         resolver.AddElu();
         resolver.AddEqual();
-        // resolver.AddEthosU();
+        // resolver.AddEthosU(); - Future.
         resolver.AddExp();
         resolver.AddExpandDims();
         resolver.AddFloor();
         resolver.AddFullyConnected();
-        // resolver.AddGather();
+        // resolver.AddGather(); - Disabled because of TF_LITE_STATIC_MEMORY
         resolver.AddGreater();
         resolver.AddGreaterEqual();
         resolver.AddHardSwish();
@@ -215,8 +303,8 @@ extern "C" {
         // resolver.AddRfft2D(); - Doesn't compile in OpenMV Cam firmware
         resolver.AddRound();
         resolver.AddRsqrt();
-        // resolver.AddSelect();
-        // resolver.AddSelectV2();
+        // resolver.AddSelect(); - Disabled because of TF_LITE_STATIC_MEMORY
+        // resolver.AddSelectV2(); - Disabled because of TF_LITE_STATIC_MEMORY
         resolver.AddShape();
         resolver.AddSin();
         // resolver.AddSlice(); - Doesn't compile in OpenMV Cam firmware
@@ -226,14 +314,14 @@ extern "C" {
         resolver.AddSplitV();
         resolver.AddSqrt();
         resolver.AddSquare();
-        // resolver.AddSquaredDifference(); - Doesn't compile in OpenMV Cam firmware
+        resolver.AddSquaredDifference();
         resolver.AddSqueeze();
         resolver.AddStridedSlice();
         resolver.AddSub();
         resolver.AddSum();
         resolver.AddSvdf();
         resolver.AddTanh();
-        // resolver.AddTranspose(); - Doesn't compile in OpenMV Cam firmware
+        resolver.AddTranspose();
         resolver.AddTransposeConv();
         resolver.AddUnpack();
         resolver.AddZerosLike();
@@ -380,6 +468,17 @@ extern "C" {
         return 0;
     }
 
+    int libtf_minimum_ops_get_parameters(const unsigned char *model_data,
+                                         unsigned char *tensor_arena,
+                                         size_t tensor_arena_size,
+                                         libtf_parameters_t *params) {
+        return libtf_get_parameters(model_data,
+                                    tensor_arena,
+                                    tensor_arena_size,
+                                    params,
+                                    libtf_minimum_ops_init_op_resolver);
+    }
+
     int libtf_reduced_ops_get_parameters(const unsigned char *model_data,
                                          unsigned char *tensor_arena,
                                          size_t tensor_arena_size,
@@ -449,6 +548,23 @@ extern "C" {
         output_callback(output_callback_data, interpreter.output(0)->data.data, params);
 
         return 0;
+    }
+
+    int libtf_minimum_ops_invoke(const unsigned char *model_data,
+                                 unsigned char *tensor_arena,
+                                 libtf_parameters_t *params,
+                                 libtf_input_data_callback_t input_callback,
+                                 void *input_callback_data,
+                                 libtf_output_data_callback_t output_callback,
+                                 void *output_callback_data) {
+        return libtf_invoke(model_data,
+                            tensor_arena,
+                            params,
+                            input_callback,
+                            input_callback_data,
+                            output_callback,
+                            output_callback_data,
+                            libtf_minimum_ops_init_op_resolver);
     }
 
     int libtf_reduced_ops_invoke(const unsigned char *model_data,
