@@ -33,23 +33,23 @@ typedef struct libtf_parameters {
 // Call this first to get the model parameters.
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_minimum_ops_get_parameters(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
-                                     unsigned char *tensor_arena, // As big as you can make it scratch buffer.
-                                     size_t tensor_arena_size, // Size of the above scratch buffer.
-                                     libtf_parameters_t *params); // Struct to hold model parameters.
+int libtf_get_parameters_minimal(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+                                 unsigned char *tensor_arena, // As big as you can make it scratch buffer.
+                                 size_t tensor_arena_size, // Size of the above scratch buffer.
+                                 libtf_parameters_t *params); // Struct to hold model parameters.
 
 // Call this first to get the model parameters.
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_reduced_ops_get_parameters(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
-                                     unsigned char *tensor_arena, // As big as you can make it scratch buffer.
-                                     size_t tensor_arena_size, // Size of the above scratch buffer.
-                                     libtf_parameters_t *params); // Struct to hold model parameters.
+int libtf_get_parameters_default(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+                                 unsigned char *tensor_arena, // As big as you can make it scratch buffer.
+                                 size_t tensor_arena_size, // Size of the above scratch buffer.
+                                 libtf_parameters_t *params); // Struct to hold model parameters.
 
 // Call this first to get the model parameters.
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_all_ops_get_parameters(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+int libtf_get_parameters_fullops(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
                                  unsigned char *tensor_arena, // As big as you can make it scratch buffer.
                                  size_t tensor_arena_size, // Size of the above scratch buffer.
                                  libtf_parameters_t *params); // Struct to hold model parameters.
@@ -66,27 +66,27 @@ typedef void (*libtf_output_data_callback_t)(void *callback_data,
 
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_minimum_ops_invoke(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
-                             unsigned char *tensor_arena, // As big as you can make it scratch buffer.
-                             libtf_parameters_t *params, // Struct with model parameters.
-                             libtf_input_data_callback_t input_callback, // Callback to populate the model input data byte array.
-                             void *input_callback_data, // User data structure passed to input callback.
-                             libtf_output_data_callback_t output_callback, // Callback to use the model output data byte array.
-                             void *output_callback_data); // User data structure passed to output callback.
+int libtf_invoke_minimal(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+                         unsigned char *tensor_arena, // As big as you can make it scratch buffer.
+                         libtf_parameters_t *params, // Struct with model parameters.
+                         libtf_input_data_callback_t input_callback, // Callback to populate the model input data byte array.
+                         void *input_callback_data, // User data structure passed to input callback.
+                         libtf_output_data_callback_t output_callback, // Callback to use the model output data byte array.
+                         void *output_callback_data); // User data structure passed to output callback.
 
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_reduced_ops_invoke(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
-                             unsigned char *tensor_arena, // As big as you can make it scratch buffer.
-                             libtf_parameters_t *params, // Struct with model parameters.
-                             libtf_input_data_callback_t input_callback, // Callback to populate the model input data byte array.
-                             void *input_callback_data, // User data structure passed to input callback.
-                             libtf_output_data_callback_t output_callback, // Callback to use the model output data byte array.
-                             void *output_callback_data); // User data structure passed to output callback.
+int libtf_invoke_default(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+                         unsigned char *tensor_arena, // As big as you can make it scratch buffer.
+                         libtf_parameters_t *params, // Struct with model parameters.
+                         libtf_input_data_callback_t input_callback, // Callback to populate the model input data byte array.
+                         void *input_callback_data, // User data structure passed to input callback.
+                         libtf_output_data_callback_t output_callback, // Callback to use the model output data byte array.
+                         void *output_callback_data); // User data structure passed to output callback.
 
 // Returns 0 on success and 1 on failure.
 // Errors are printed to stdout.
-int libtf_all_ops_invoke(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
+int libtf_invoke_fullops(const unsigned char *model_data, // TensorFlow Lite binary model (8-bit quant).
                          unsigned char *tensor_arena, // As big as you can make it scratch buffer.
                          libtf_parameters_t *params, // Struct with model parameters.
                          libtf_input_data_callback_t input_callback, // Callback to populate the model input data byte array.
