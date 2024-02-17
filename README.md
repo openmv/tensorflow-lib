@@ -36,6 +36,10 @@ Full featured Tensorflow package for Cortex-M0-Plus, Cortex-M4, Cortex-M7, and C
 
 You will need to use the `source ci.sh ci_build` to compile the library if you installed gcc via `source ci.sh && ci_install_arm_gcc` and did not add GCC to your path.
 
+### Edge Impulse SDK (TensorFlow) Changes
+
+If you edit anything in the Edge Impulse SDK (TensorFlow) repo, make sure to do `python make.py --clean` afterward to delete any cached changes.
+
 ## Prebuilt Files
 
 You can find libtf pre-built under [releases](https://github.com/openmv/tensorflow-lib/releases). Alternatively, you may include this repo as a submodule and use [libtf](libtf) directly from the repo. This will allow you to easily update libtf without having to store the binaries directly in your repo.
