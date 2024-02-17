@@ -38,7 +38,7 @@ You will need to use the `source ci.sh ci_build` to compile the library if you i
 
 ### Edge Impulse SDK (TensorFlow) Changes
 
-If you edit anything in the Edge Impulse SDK (TensorFlow) repo, make sure to do `python make.py --clean` afterward to delete any cached changes.
+If you edit anything in the Edge Impulse SDK (TensorFlow) repo, make sure to do `python make.py --clean` afterward to delete any cached changes. Otherwise, you may get confusing errors.
 
 ## Prebuilt Files
 
