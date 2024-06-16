@@ -264,7 +264,6 @@ extern "C" {
         libtf_resolver_init(resolver);
 
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
-        params->operators_size = interpreter.operators_size();
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
             error_reporter->Report("AllocateTensors() failed!");
