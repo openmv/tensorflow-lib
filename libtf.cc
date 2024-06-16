@@ -9,26 +9,14 @@
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/schema/schema_utils.h"
 
 #include "libtf.h"
 #define LIBTF_MAX_OPS 80
 
 extern "C" {
-    // These are set by openmv py_tf.c code to redirect printing to an error message buffer...
-    char *py_tf_putchar_buffer = NULL;
-    size_t py_tf_putchar_buffer_index = 0;
-    size_t py_tf_putchar_buffer_len = 0;
-
-    static void libtf_debug_log(const char *s) {
-        for (size_t i = 0, j = strlen(s); i < j; i++) {
-            if (py_tf_putchar_buffer_len) {
-                py_tf_putchar_buffer[py_tf_putchar_buffer_index++] = s[i];
-                py_tf_putchar_buffer_len--;
-            } else {
-                putchar(s[i]);
-            }
-        }
+    // Default log handler.
+    __attribute__((weak)) void libtf_log_handler(const char *s) {
+        printf(s);
     }
 
     static int libtf_align_tensor_arena(unsigned char **tensor_arena, size_t *tensor_arena_size) {
@@ -240,24 +228,11 @@ extern "C" {
         resolver.AddZerosLike();
     }
 
-    static uint32_t libtf_ops_hash(const tflite::Model *model) {
-        uint32_t hash = 5381;
-        const auto *subgraph = model->subgraphs()->Get(0);
-        for (size_t i = 0; i < subgraph->operators()->size(); i++) {
-            const auto *op = subgraph->operators()->Get(i);
-            uint32_t opcode = GetBuiltinCode(model->operator_codes()->Get(op->opcode_index()));
-            for (size_t x=0; x<4; x++) {
-                hash = ((hash << 5) + hash) + ((uint8_t*) &opcode)[x];
-            }
-        }
-        return hash;
-    }
-
     static int libtf_get_parameters(const unsigned char *model_data,
                                     unsigned char *tensor_arena, size_t tensor_arena_size,
                                     libtf_parameters_t *params,
                                     libtf_resolver_init_t libtf_resolver_init) {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -278,8 +253,6 @@ extern "C" {
         libtf_resolver_init(resolver);
 
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
-        params->operators_size = interpreter.operators_size();
-        params->operators_hash = libtf_ops_hash(model);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
             error_reporter->Report("AllocateTensors() failed!");
@@ -426,7 +399,7 @@ extern "C" {
                             libtf_output_data_callback_t output_callback,
                             void *output_callback_data,
                             libtf_resolver_init_t libtf_resolver_init) {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -502,7 +475,7 @@ extern "C" {
     }
 
     int libtf_initialize_micro_features() {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -516,7 +489,7 @@ extern "C" {
 
     int libtf_generate_micro_features(const int16_t *input, int input_size,
             int output_size, int8_t *output, size_t *num_samples_read) {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
