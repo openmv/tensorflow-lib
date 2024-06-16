@@ -9,7 +9,6 @@
 #include "tensorflow/lite/micro/cortex_m_generic/debug_log_callback.h"
 #include "tensorflow/lite/micro/examples/micro_speech/micro_features/micro_features_generator.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/schema/schema_utils.h"
 
 #include "libtf.h"
 #define LIBTF_MAX_OPS 80
@@ -240,19 +239,6 @@ extern "C" {
         resolver.AddZerosLike();
     }
 
-    static uint32_t libtf_ops_hash(const tflite::Model *model) {
-        uint32_t hash = 5381;
-        const auto *subgraph = model->subgraphs()->Get(0);
-        for (size_t i = 0; i < subgraph->operators()->size(); i++) {
-            const auto *op = subgraph->operators()->Get(i);
-            uint32_t opcode = GetBuiltinCode(model->operator_codes()->Get(op->opcode_index()));
-            for (size_t x=0; x<4; x++) {
-                hash = ((hash << 5) + hash) + ((uint8_t*) &opcode)[x];
-            }
-        }
-        return hash;
-    }
-
     static int libtf_get_parameters(const unsigned char *model_data,
                                     unsigned char *tensor_arena, size_t tensor_arena_size,
                                     libtf_parameters_t *params,
@@ -279,7 +265,6 @@ extern "C" {
 
         tflite::MicroInterpreter interpreter(model, resolver, tensor_arena, tensor_arena_size, error_reporter);
         params->operators_size = interpreter.operators_size();
-        params->operators_hash = libtf_ops_hash(model);
 
         if (interpreter.AllocateTensors() != kTfLiteOk) {
             error_reporter->Report("AllocateTensors() failed!");
