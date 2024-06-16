@@ -14,20 +14,9 @@
 #define LIBTF_MAX_OPS 80
 
 extern "C" {
-    // These are set by openmv py_tf.c code to redirect printing to an error message buffer...
-    char *py_tf_putchar_buffer = NULL;
-    size_t py_tf_putchar_buffer_index = 0;
-    size_t py_tf_putchar_buffer_len = 0;
-
-    static void libtf_debug_log(const char *s) {
-        for (size_t i = 0, j = strlen(s); i < j; i++) {
-            if (py_tf_putchar_buffer_len) {
-                py_tf_putchar_buffer[py_tf_putchar_buffer_index++] = s[i];
-                py_tf_putchar_buffer_len--;
-            } else {
-                putchar(s[i]);
-            }
-        }
+    // Default log handler.
+    __attribute__((weak)) void libtf_log_handler(const char *s) {
+        printf(s);
     }
 
     static int libtf_align_tensor_arena(unsigned char **tensor_arena, size_t *tensor_arena_size) {
@@ -243,7 +232,7 @@ extern "C" {
                                     unsigned char *tensor_arena, size_t tensor_arena_size,
                                     libtf_parameters_t *params,
                                     libtf_resolver_init_t libtf_resolver_init) {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -410,7 +399,7 @@ extern "C" {
                             libtf_output_data_callback_t output_callback,
                             void *output_callback_data,
                             libtf_resolver_init_t libtf_resolver_init) {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -486,7 +475,7 @@ extern "C" {
     }
 
     int libtf_initialize_micro_features() {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
@@ -500,7 +489,7 @@ extern "C" {
 
     int libtf_generate_micro_features(const int16_t *input, int input_size,
             int output_size, int8_t *output, size_t *num_samples_read) {
-        RegisterDebugLogCallback(libtf_debug_log);
+        RegisterDebugLogCallback(libtf_log_handler);
 
         tflite::MicroErrorReporter micro_error_reporter;
         tflite::ErrorReporter *error_reporter = &micro_error_reporter;
